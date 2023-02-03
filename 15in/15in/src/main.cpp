@@ -61,24 +61,6 @@ void opcontrol()
 
 		catapult.move_voltage((catapultStateMachine.getState() == CatapultState::Ready) ? 0 : 12000);
 		catapultStateMachine.transition();
-		/*
-		catapult.move_voltage((catapultState == CatapultState::Ready) ? 0 : 12000);
-		switch(catapultState) {
-			case CatapultState::Ready:
-				if(master.get_digital_new_press(DIGITAL_R1)) {
-					catapultState = CatapultState::Shooting;
-				}
-				break;
-			case CatapultState::Shooting:
-				if(!catapultSwitch.get_value())
-					catapultState = CatapultState::Preparing;
-				break;
-			case CatapultState::Preparing:
-				if(catapultSwitch.get_value())
-					catapultState = CatapultState::Ready;
-				break;
-		};
-		*/
 		pros::delay(10);
 	}
 }
