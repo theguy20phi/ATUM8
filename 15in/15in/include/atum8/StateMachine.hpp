@@ -1,5 +1,5 @@
 /**
- * @file StateMachine.hpp
+ * @file stateMachine.hpp
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Provides the template class for all state machines.
  * @version 0.1
@@ -15,7 +15,7 @@
 #include <functional>
 #include <unordered_map>
 
-namespace ATUM8
+namespace atum8
 {
     /**
      * @brief Provides the basic underlying logic for state machines.

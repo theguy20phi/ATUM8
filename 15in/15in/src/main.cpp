@@ -1,14 +1,23 @@
 #include "main.h"
 
+std::unique_ptr<atum8::AutonSelector> autonSelector;
+
 void initialize()
 {
 	pros::lcd::initialize();
-	pros::lcd::set_text(1, "Hello PROS User!");
+	pros::lcd::set_background_color(lv_color_t{0x000000});
+	pros::lcd::set_text_color(255, 255, 255);
+	autonSelector = std::make_unique<atum8::AutonSelector>();
 }
 
-void disabled() {}
-
-void competition_initialize() {}
+void disabled()
+{
+	pros::lcd::register_btn0_cb([] () { autonSelector->control(-1); });
+	pros::lcd::register_btn1_cb([] () { autonSelector->control(0); });
+	pros::lcd::register_btn2_cb([] () { autonSelector->control(1); });
+	autonSelector->view();
+	while(true) pros::delay(10);
+}
 
 void autonomous() {}
 
@@ -21,8 +30,12 @@ enum class CatapultState
 
 void opcontrol()
 {
-	auto master = std::make_shared<pros::Controller>(pros::E_CONTROLLER_MASTER);
+	pros::lcd::register_btn0_cb([] () { autonSelector->control(-1); });
+	pros::lcd::register_btn1_cb([] () { autonSelector->control(0); });
+	pros::lcd::register_btn2_cb([] () { autonSelector->control(1); });
+	autonSelector->view();
 
+	auto master{std::make_shared<pros::Controller>(CONTROLLER_MASTER)};
 	pros::Motor lfWheel{19};
 	pros::Motor lbWheel{12};
 	pros::Motor rfWheel{17, true};
@@ -32,7 +45,7 @@ void opcontrol()
 	pros::Motor catapultR{4, pros::motor_gearset_e_t::E_MOTOR_GEAR_RED, true};
 	pros::MotorGroup catapult{catapultL, catapultR};
 	pros::ADIDigitalIn catapultSwitch{'A'};
-	ATUM8::StateMachine<CatapultState>::Transitions catapultTransitions{
+	atum8::StateMachine<CatapultState>::Transitions catapultTransitions{
 		{CatapultState::Ready, [master]()
 		 {
 			 return master->get_digital_new_press(DIGITAL_R1) ? CatapultState::Shooting : CatapultState::Ready;
@@ -45,7 +58,7 @@ void opcontrol()
 		 {
 			 return catapultSwitch.get_value() ? CatapultState::Ready : CatapultState::Preparing;
 		 }}};
-	ATUM8::StateMachine<CatapultState> catapultStateMachine{CatapultState::Preparing, catapultTransitions};
+	atum8::StateMachine<CatapultState> catapultStateMachine{CatapultState::Preparing};
 	catapult.set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD);
 
 	int counter{0};
@@ -61,6 +74,7 @@ void opcontrol()
 
 		catapult.move_voltage((catapultStateMachine.getState() == CatapultState::Ready) ? 0 : 12000);
 		catapultStateMachine.transition();
+
 		pros::delay(10);
 	}
 }
