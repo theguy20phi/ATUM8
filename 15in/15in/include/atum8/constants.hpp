@@ -3,7 +3,7 @@
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Provides a set of common constants, data structures, and
  * utility functions.
- * @version 0.2
+ * @version 0.3
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -12,7 +12,10 @@
 
 #pragma once
 
-#include <vector>
+#include <memory>
+#include <array>
+#include "pros/motors.hpp"
+#include "pros/imu.hpp"
 
 namespace atum8
 {
@@ -33,9 +36,9 @@ namespace atum8
         Skills
     };
 
-    static const std::vector<std::string> routineNames{"Left", "Right", "Center", "Special", "Skills"};
+    static constexpr std::array routineNames{"Left", "Right", "Center", "Special", "Skills"};
 
-    static const std::vector<std::string> routineDescs{
+    static constexpr std::array routineDescs{
         "Left side autonomous routine.\nYou should put more info here!\nAnd here as well.",
         "Right side autonomous routine.\nLike where should it go?\nWhat does it do?",
         "Center autonomous routine.\nThis took a lot of time...\nMAKE USE OF IT!",
@@ -71,4 +74,13 @@ namespace atum8
      *
      */
     static constexpr int brainScreenWidth{32};
+
+    /**
+     * @brief The standard delay in tasks and the like.
+     *
+     */
+    static constexpr int stdDelay{10};
+
+    using UPMotor = std::unique_ptr<pros::Motor>;
+    using UPImu = std::unique_ptr<pros::Imu>;
 }

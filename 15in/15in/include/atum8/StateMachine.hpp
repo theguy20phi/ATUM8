@@ -37,7 +37,7 @@ namespace atum8
          * @param iTransitions The "automatic" transitions, given as a hashmap of states
          * and functions returnings states.
          */
-        StateMachine(State startingState, Transitions iTransitions = {}) : state(startingState), transitions(iTransitions) {}
+        StateMachine(State startingState, Transitions iTransitions = {}) : state{startingState}, transitions{iTransitions} {}
 
         /**
          * @brief Performs the transition associated with the current state.
@@ -50,7 +50,7 @@ namespace atum8
 
         /**
          * @brief Sets the state to a new value.
-         * 
+         *
          * @param iState The new state of the machine.
          */
         void setState(State iState)
@@ -60,8 +60,8 @@ namespace atum8
 
         /**
          * @brief Gets the current state.
-         * 
-         * @return state The current state of the machine.
+         *
+         * @return state 
          */
         State getState() const
         {

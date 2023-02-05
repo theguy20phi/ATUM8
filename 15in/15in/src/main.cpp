@@ -1,6 +1,7 @@
 #include "main.h"
 
-std::unique_ptr<atum8::AutonSelector> autonSelector;
+atum8::UPAutonSelector autonSelector;
+std::unique_ptr<atum8::Mecanum> drive;
 
 void initialize()
 {
@@ -8,15 +9,26 @@ void initialize()
 	pros::lcd::set_background_color(lv_color_t{0x000000});
 	pros::lcd::set_text_color(255, 255, 255);
 	autonSelector = std::make_unique<atum8::AutonSelector>();
+	drive = std::make_unique<atum8::Mecanum>(
+		std::make_unique<pros::Motor>(17, true),
+		std::make_unique<pros::Motor>(19),
+		std::make_unique<pros::Motor>(12),
+		std::make_unique<pros::Motor>(14, true),
+		nullptr, nullptr,
+		std::make_unique<pros::Imu>(1));
 }
 
 void disabled()
 {
-	pros::lcd::register_btn0_cb([] () { autonSelector->control(-1); });
-	pros::lcd::register_btn1_cb([] () { autonSelector->control(0); });
-	pros::lcd::register_btn2_cb([] () { autonSelector->control(1); });
+	pros::lcd::register_btn0_cb([]()
+								{ autonSelector->control(-1); });
+	pros::lcd::register_btn1_cb([]()
+								{ autonSelector->control(0); });
+	pros::lcd::register_btn2_cb([]()
+								{ autonSelector->control(1); });
 	autonSelector->view();
-	while(true) pros::delay(10);
+	while (true)
+		pros::delay(10);
 }
 
 void autonomous() {}
@@ -30,16 +42,15 @@ enum class CatapultState
 
 void opcontrol()
 {
-	pros::lcd::register_btn0_cb([] () { autonSelector->control(-1); });
-	pros::lcd::register_btn1_cb([] () { autonSelector->control(0); });
-	pros::lcd::register_btn2_cb([] () { autonSelector->control(1); });
+	pros::lcd::register_btn0_cb([]()
+								{ autonSelector->control(-1); });
+	pros::lcd::register_btn1_cb([]()
+								{ autonSelector->control(0); });
+	pros::lcd::register_btn2_cb([]()
+								{ autonSelector->control(1); });
 	autonSelector->view();
 
 	auto master{std::make_shared<pros::Controller>(CONTROLLER_MASTER)};
-	pros::Motor lfWheel{19};
-	pros::Motor lbWheel{12};
-	pros::Motor rfWheel{17, true};
-	pros::Motor rbWheel{14, true};
 
 	pros::Motor catapultL{2, pros::motor_gearset_e_t::E_MOTOR_GEAR_RED};
 	pros::Motor catapultR{4, pros::motor_gearset_e_t::E_MOTOR_GEAR_RED, true};
@@ -64,13 +75,10 @@ void opcontrol()
 	int counter{0};
 	while (true)
 	{
-		const int strafe{100 * master->get_analog(ANALOG_LEFT_X)};
-		const int forward{100 * master->get_analog(ANALOG_LEFT_Y)};
-		const int turn{100 * master->get_analog(ANALOG_RIGHT_X)};
-		lfWheel.move_voltage(forward + strafe + turn);
-		lbWheel.move_voltage(forward - strafe + turn);
-		rfWheel.move_voltage(forward - strafe - turn);
-		rbWheel.move_voltage(forward + strafe - turn);
+		const int forward{master->get_analog(ANALOG_LEFT_Y)};
+		const int strafe{master->get_analog(ANALOG_LEFT_X)};
+		const int turn{master->get_analog(ANALOG_RIGHT_X)};
+		drive->move(forward, strafe, turn);
 
 		catapult.move_voltage((catapultStateMachine.getState() == CatapultState::Ready) ? 0 : 12000);
 		catapultStateMachine.transition();

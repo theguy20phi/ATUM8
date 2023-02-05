@@ -71,4 +71,6 @@ namespace atum8
         } cursorPosition{CursorPosition::OverColor};
         MatchInfo matchInfo{(Color)0, (Routine)0};
     };
+    
+    using UPAutonSelector = std::unique_ptr<AutonSelector>;
 }
