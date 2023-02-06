@@ -11,11 +11,8 @@
 
 #pragma once
 
-#include "pros/llemu.hpp"
-#include "constants.hpp"
+#include "gui.hpp"
 #include <iostream>
-#include <memory>
-#include <string>
 #include <vector>
 
 namespace atum8
@@ -28,7 +25,7 @@ namespace atum8
      * Change
      *
      */
-    class AutonSelector
+    class AutonSelector : public Gui
     {
     public:
         /**
@@ -61,16 +58,10 @@ namespace atum8
         MatchInfo getMatchInfo() const;
 
     private:
-        void printDesc(int line, const std::string &concatLines) const;
-        void changeCursorPosition();
         void changeMatchInfo(int i);
-        enum class CursorPosition
-        {
-            OverColor,
-            OverRoutine
-        } cursorPosition{CursorPosition::OverColor};
         MatchInfo matchInfo{(Color)0, (Routine)0};
     };
-    
+
     using UPAutonSelector = std::unique_ptr<AutonSelector>;
+    using SPAutonSelector = std::shared_ptr<AutonSelector>;
 }

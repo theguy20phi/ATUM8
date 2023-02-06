@@ -1,15 +1,33 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
-atum8::UPAutonSelector autonSelector;
-atum8::UPMecanum drive;
+atum8::SPGui gui;
+atum8::SPGui autonSelector;
+atum8::SPGui debugger;
+atum8::SPMecanum drive;
 
 void initialize()
 {
+	/* -------------------------------------------------------------------------- */
+	/*                             GUI Initialization                             */
+	/* -------------------------------------------------------------------------- */
 	pros::lcd::initialize();
 	pros::lcd::set_background_color(lv_color_t{0x000000});
 	pros::lcd::set_text_color(255, 255, 255);
-	autonSelector = std::make_unique<atum8::AutonSelector>();
+	autonSelector = std::make_shared<atum8::AutonSelector>();
+	debugger = std::make_shared<atum8::Debugger>(atum8::Debugger::LineFns{
+		[] (int control) { return "HELLO WORLD!"; },
+		[] (int control) { return "IT'S YA BOY:"; },
+		[] (int control) { return "<we don't have a name yet>"; }
+	});
+	gui = autonSelector;
+	pros::lcd::register_btn0_cb([]()
+								{ gui->control(-1); });
+	pros::lcd::register_btn1_cb([]()
+								{ gui->control(0); });
+	pros::lcd::register_btn2_cb([]()
+								{ gui->control(1); });
+
 	drive = std::make_unique<atum8::Mecanum>(
 		std::make_unique<pros::Motor>(17, true),
 		std::make_unique<pros::Motor>(19),
@@ -26,13 +44,8 @@ void initialize()
 
 void disabled()
 {
-	pros::lcd::register_btn0_cb([]()
-								{ autonSelector->control(-1); });
-	pros::lcd::register_btn1_cb([]()
-								{ autonSelector->control(0); });
-	pros::lcd::register_btn2_cb([]()
-								{ autonSelector->control(1); });
-	autonSelector->view();
+	gui = debugger;
+	gui->view();
 	while (true)
 		pros::delay(10);
 }
@@ -48,14 +61,8 @@ enum class CatapultState
 
 void opcontrol()
 {
-	std::cout << (1_ft).convert(okapi::inch) << std::endl;
-	pros::lcd::register_btn0_cb([]()
-								{ autonSelector->control(-1); });
-	pros::lcd::register_btn1_cb([]()
-								{ autonSelector->control(0); });
-	pros::lcd::register_btn2_cb([]()
-								{ autonSelector->control(1); });
-	autonSelector->view();
+	gui = debugger;
+	gui->view();
 
 	auto master{std::make_shared<pros::Controller>(CONTROLLER_MASTER)};
 

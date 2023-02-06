@@ -54,6 +54,7 @@ namespace atum8
         void tare();
 
     private:
+        bool isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
         int driveForwardController(const okapi::QLength &distanceError, int maxForward = 127);
         int driveTurnController(const okapi::QAngle &angleError, int maxTurn = 127);
         UPMotor rFMotor;

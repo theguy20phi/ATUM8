@@ -12,7 +12,7 @@ namespace atum8
     {
         // Change cursor position for middle button (pressed when i = 0)
         if (!i)
-            changeCursorPosition();
+            incrementCursor(2);
         else
             changeMatchInfo(i);
         view();
@@ -23,7 +23,7 @@ namespace atum8
         pros::lcd::clear();
         std::string colorText{matchInfo.color == Color::Red ? "RED" : "BLUE"};
         std::string routineText{routineNames[matchInfo.routine]};
-        if (cursorPosition == CursorPosition::OverColor)
+        if (!cursor)
             colorText += " <<<";
         else
             routineText += " <<<";
@@ -37,34 +37,10 @@ namespace atum8
         return matchInfo;
     }
 
-    void AutonSelector::printDesc(int line, const std::string &concatLines) const
-    {
-        std::string currentLine{""};
-        int lineOffset{0};
-        for (char c : concatLines)
-        {
-            currentLine += c;
-            if (currentLine.size() == brainScreenWidth || c == '\n')
-            {
-                pros::lcd::set_text(line + lineOffset, currentLine);
-                lineOffset++;
-                currentLine = "";
-            }
-        }
-        pros::lcd::set_text(line + lineOffset, currentLine);
-    }
-
-    void AutonSelector::changeCursorPosition()
-    {
-        if (cursorPosition == CursorPosition::OverColor)
-            cursorPosition = CursorPosition::OverRoutine;
-        else
-            cursorPosition = CursorPosition::OverColor;
-    }
-
     void AutonSelector::changeMatchInfo(int i)
     {
-        if (cursorPosition == CursorPosition::OverColor)
+        // If cursor is over the color section (cursor == 1), change color, otherwise change routine
+        if (!cursor)
             matchInfo.color = matchInfo.color == Color::Red ? Color::Blue : Color::Red;
         else
         {

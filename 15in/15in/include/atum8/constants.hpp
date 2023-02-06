@@ -70,10 +70,16 @@ namespace atum8
     };
 
     /**
-     * @brief Max number of horizontal characters on brain screen.
+     * @brief Max number of horizontal characters on brain screen LCD.
      *
      */
     static constexpr int brainScreenWidth{32};
+
+    /**
+     * @brief Max number of rows on brain screen LCD.
+     *
+     */
+    static constexpr int brainScreenHeight{8};
 
     /**
      * @brief The standard delay in tasks and the like.

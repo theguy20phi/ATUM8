@@ -34,12 +34,12 @@ namespace atum8
 
     void Mecanum::forward(const okapi::QLength &distance, const okapi::QTime &maxTime, int maxForward)
     {
-        okapi::QTime startTime{pros::millis() * okapi::millisecond};
         tare();
         okapi::QLength distanceError{distance - getDistance()};
         okapi::QAngle angleError{getAngle()};
+        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
         while (!isSettled(distanceError, angleError) &&
-               ((pros::millis() * okapi::millisecond - startTime) <= maxTime))
+               !isTimeExpired(startTime, maxTime))
         {
             distanceError = distance - getDistance();
             angleError = getAngle();
@@ -50,11 +50,11 @@ namespace atum8
 
     void Mecanum::turn(const okapi::QAngle &angle, const okapi::QTime &maxTime, int maxTurn)
     {
-        okapi::QTime startTime{pros::millis() * okapi::millisecond};
         tare();
         okapi::QAngle angleError{angle - getAngle()};
+        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
         while (!turnSettledChecker->isSettled(angleError) &&
-               ((pros::millis() * okapi::millisecond - startTime) <= maxTime))
+               !isTimeExpired(startTime, maxTime))
         {
             angleError = angle - getAngle();
             move(0, driveTurnController(angleError, maxTurn));
@@ -114,6 +114,11 @@ namespace atum8
         lBMotor->tare_position();
         rBMotor->tare_position();
         imu->tare_rotation();
+    }
+
+    bool Mecanum::isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
+    {
+        return (pros::millis() * okapi::millisecond - startTime) <= maxTime;
     }
 
     int Mecanum::driveForwardController(const okapi::QLength &distanceError, int maxForward)
