@@ -56,7 +56,7 @@ namespace atum8
          *
          * @param state The current state.
          * @param reference The desired reference state.
-         * @return double 
+         * @return double
          */
         double getOutput(double state, double reference);
 
@@ -76,7 +76,6 @@ namespace atum8
         UPController farController;
         double shiftLocation{0};
         double shiftSpeed{0};
-        double output{0};
     };
 
     using UPSlider = std::unique_ptr<Slider>;

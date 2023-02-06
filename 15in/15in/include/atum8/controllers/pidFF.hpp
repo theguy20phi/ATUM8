@@ -5,7 +5,7 @@
  * proportional, integral, derivative, and feed-forward controller).
  * This can be used to drive many different systems from their current state
  * to a desirable reference state.
- * @version 0.3
+ * @version 0.4
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -113,10 +113,16 @@ namespace atum8
          */
         Parameters getParams() const;
 
+        /**
+         * @brief Resets the PidFF controller by setting output, prevError, 
+         * and I to 0.
+         * 
+         */
+        void reset();
+
     private:
         void updateI(double error);
         Parameters params;
-        double output{0};
         double prevError{0};
         double I{0};
     };

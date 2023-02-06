@@ -16,6 +16,7 @@
 #include "autonSelector.hpp"
 #include "mecanum.hpp"
 #include "slewRate.hpp"
+#include "settledChecker.hpp"
 #include "controllers/controller.hpp"
 #include "controllers/pidFF.hpp"
 #include "controllers/tbh.hpp"

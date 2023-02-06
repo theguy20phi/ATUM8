@@ -9,12 +9,17 @@ namespace atum8
 
     bool Controller::sampleTimePassed()
     {
-        const long unsigned int currentTime{pros::millis()};
-        if (currentTime - prevTime >= stdDelay)
+        const long unsigned int time{pros::millis()};
+        if (time - prevTime >= stdDelay)
         {
-            prevTime = currentTime;
+            prevTime = time;
             return true;
         }
         return false;
+    }
+
+    void Controller::reset()
+    {
+        output = 0;
     }
 }

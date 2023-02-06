@@ -32,4 +32,9 @@ namespace atum8
     {
         return kTbh;
     }
+
+    void Tbh::reset() {
+        Controller::reset();
+        feedForward = 0;
+    }
 }

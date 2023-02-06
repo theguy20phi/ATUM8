@@ -34,6 +34,7 @@
 #define PROS_USE_LITERALS
 
 #include "api.h"
+#include "okapi/api.hpp"
 #include "atum8/atum8.hpp"
 
 /**

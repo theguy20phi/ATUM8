@@ -4,7 +4,7 @@
  * @brief Provides an implementation for the Take-Back-Half control
  * algorithm, which is similar to an integrator, but with additional logic
  * whenever the state crosses the reference. Useful for velocity control.
- * @version 0.1
+ * @version 0.2
  * @date 2023-02-05
  *
  * @copyright Copyright (c) 2023
@@ -66,6 +66,13 @@ namespace atum8
          * @return double
          */
         double getKTbh() const;
+
+        /**
+         * @brief Resets the tbh controller by setting output and feedForward
+         * to 0.
+         *
+         */
+        void reset();
 
     private:
         double feedForward{0};

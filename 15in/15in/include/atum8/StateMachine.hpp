@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <iostream>
 #include <utility>
 #include <functional>
 #include <unordered_map>
@@ -37,15 +38,16 @@ namespace atum8
          * @param iTransitions The "automatic" transitions, given as a hashmap of states
          * and functions returnings states.
          */
-        StateMachine(State startingState, Transitions iTransitions = {}) : state{startingState}, transitions{iTransitions} {}
+        StateMachine(State startingState, Transitions iTransitions) : state{startingState}, transitions{iTransitions} {}
 
         /**
          * @brief Performs the transition associated with the current state.
          *
          */
-        void transition()
+        State transition()
         {
             state = transitions[state]();
+            return state;
         }
 
         /**
@@ -61,7 +63,7 @@ namespace atum8
         /**
          * @brief Gets the current state.
          *
-         * @return state 
+         * @return state
          */
         State getState() const
         {

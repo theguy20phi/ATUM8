@@ -1,7 +1,8 @@
 #include "main.h"
+#include "okapi/api/units/QLength.hpp"
 
 atum8::UPAutonSelector autonSelector;
-std::unique_ptr<atum8::Mecanum> drive;
+atum8::UPMecanum drive;
 
 void initialize()
 {
@@ -14,7 +15,12 @@ void initialize()
 		std::make_unique<pros::Motor>(19),
 		std::make_unique<pros::Motor>(12),
 		std::make_unique<pros::Motor>(14, true),
+		atum8::Mecanum::Dimensions{18_in, 12.56_in},
 		nullptr, nullptr,
+		std::make_unique<atum8::SettledChecker<okapi::QLength, okapi::QSpeed>>(2_in, 1_inps, 0.5_s),
+		std::make_unique<atum8::SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(2_deg, 10_degps, 0.5_s),
+		std::make_unique<atum8::SlewRate>(1),
+		std::make_unique<atum8::SlewRate>(1),
 		std::make_unique<pros::Imu>(1));
 }
 
@@ -42,6 +48,7 @@ enum class CatapultState
 
 void opcontrol()
 {
+	std::cout << (1_ft).convert(okapi::inch) << std::endl;
 	pros::lcd::register_btn0_cb([]()
 								{ autonSelector->control(-1); });
 	pros::lcd::register_btn1_cb([]()
@@ -69,10 +76,11 @@ void opcontrol()
 		 {
 			 return catapultSwitch.get_value() ? CatapultState::Ready : CatapultState::Preparing;
 		 }}};
-	atum8::StateMachine<CatapultState> catapultStateMachine{CatapultState::Preparing};
+	atum8::StateMachine<CatapultState> catapultStateMachine{CatapultState::Preparing, catapultTransitions};
 	catapult.set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD);
 
-	int counter{0};
+	atum8::UPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> testSettledChecker{
+		std::make_unique<atum8::SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(20_deg, 5_rpm, 1_s)};
 	while (true)
 	{
 		const int forward{master->get_analog(ANALOG_LEFT_Y)};

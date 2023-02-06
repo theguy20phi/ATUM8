@@ -3,7 +3,7 @@
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Provides the Controller interface that will be
  * used to make controllers easily swappable in control algorithms.
- * @version 0.4
+ * @version 0.5
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -50,6 +50,12 @@ namespace atum8
          * @return double The output of the controller;
          */
         virtual double getOutput() const;
+
+        /**
+         * @brief Resets the controller by setting output to 0.
+         * 
+         */
+        virtual void reset();
 
     protected:
         bool sampleTimePassed();

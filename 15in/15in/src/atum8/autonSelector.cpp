@@ -4,7 +4,7 @@ namespace atum8
 {
     AutonSelector::AutonSelector()
     {
-        if (routineNames.size() == routineDescs.size())
+        if (routineNames.size() != routineDescs.size())
             std::cout << "routineNames size != routineDescs size!\n";
     }
 

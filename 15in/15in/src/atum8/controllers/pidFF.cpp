@@ -59,4 +59,10 @@ namespace atum8
     {
         return params;
     }
+
+    void PidFF::reset() {
+        Controller::reset();
+        prevError = 0;
+        I = 0;
+    }
 }

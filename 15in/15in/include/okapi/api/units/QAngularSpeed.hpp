@@ -20,6 +20,7 @@ QUANTITY_TYPE(0, 0, -1, 1, QAngularSpeed)
 constexpr QAngularSpeed radps = radian / second;
 constexpr QAngularSpeed rpm = (360 * degree) / minute;
 constexpr QAngularSpeed cps = (0.01 * degree) / second; // centidegree per second
+constexpr QAngularSpeed degps = degree / second;
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-function"
@@ -29,11 +30,17 @@ static QAngularSpeed convertHertzToRadPerSec(QFrequency in) {
 #pragma GCC diagnostic pop
 
 inline namespace literals {
+constexpr QAngularSpeed operator"" _degps(long double x) {
+  return x * degps;
+}
 constexpr QAngularSpeed operator"" _rpm(long double x) {
   return x * rpm;
 }
 constexpr QAngularSpeed operator"" _rpm(unsigned long long int x) {
   return static_cast<double>(x) * rpm;
+}
+constexpr QAngularSpeed operator"" _degps(unsigned long long int x) {
+  return static_cast<double>(x) * degps;
 }
 } // namespace literals
 } // namespace okapi
