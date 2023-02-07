@@ -62,12 +62,29 @@ namespace atum8
             prevDistance = distance;
             prevTime = time;
             if (abs(distance) <= maxDistance && abs(velocity) <= maxVelocity)
-                return (time - prevTimeInBounds) >= minTime;
+            {
+                settled = (time - prevTimeInBounds) >= minTime;
+                return settled;
+            }
             prevTimeInBounds = time;
-            return false;
+            settled = false;
+            return settled;
+        }
+
+        /**
+         * @brief Returns if the system was settled based on the last call of 
+         * isSettled(const Unit&).
+         *
+         * @return true
+         * @return false
+         */
+        bool isSettled()
+        {
+            return settled;
         }
 
     private:
+        bool settled{false};
         Unit maxDistance;
         UnitDeriv maxVelocity;
         okapi::QTime minTime;

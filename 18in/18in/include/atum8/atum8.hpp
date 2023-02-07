@@ -11,14 +11,16 @@
 
 #pragma once
 
+#include "mecanum.hpp"
+#include "flywheel.hpp"
 #include "constants.hpp"
 #include "stateMachine.hpp"
+#include "slewRate.hpp"
+#include "settledChecker.hpp"
+#include "task.hpp"
 #include "gui/gui.hpp"
 #include "gui/autonSelector.hpp"
 #include "gui/debugger.hpp"
-#include "mecanum.hpp"
-#include "slewRate.hpp"
-#include "settledChecker.hpp"
 #include "controllers/controller.hpp"
 #include "controllers/bangBang.hpp"
 #include "controllers/tbh.hpp"

@@ -5,6 +5,7 @@ atum8::SPGui gui;
 atum8::SPGui autonSelector;
 atum8::SPGui debugger;
 atum8::SPMecanum drive;
+int number{0};
 
 void initialize()
 {
@@ -16,10 +17,14 @@ void initialize()
 	pros::lcd::set_text_color(255, 255, 255);
 	autonSelector = std::make_shared<atum8::AutonSelector>();
 	debugger = std::make_shared<atum8::Debugger>(atum8::Debugger::LineFns{
-		[] (int control) { return "HELLO WORLD!"; },
-		[] (int control) { return "IT'S YA BOY:"; },
-		[] (int control) { return "<we don't have a name yet>"; }
-	});
+		[](int control)
+		{ return "HELLO WORLD!"; },
+		[](int control)
+		{ return "IT'S YA BOY:"; },
+		[](int control)
+		{ return "<we don't have a name yet>"; },
+		[](int control)
+		{ return "Here's a number: " + std::to_string(number += control); }});
 	gui = autonSelector;
 	pros::lcd::register_btn0_cb([]()
 								{ gui->control(-1); });
@@ -28,18 +33,18 @@ void initialize()
 	pros::lcd::register_btn2_cb([]()
 								{ gui->control(1); });
 
-	drive = std::make_unique<atum8::Mecanum>(
-		std::make_unique<pros::Motor>(17, true),
-		std::make_unique<pros::Motor>(19),
-		std::make_unique<pros::Motor>(12),
-		std::make_unique<pros::Motor>(14, true),
-		atum8::Mecanum::Dimensions{18_in, 12.56_in},
-		nullptr, nullptr,
-		std::make_unique<atum8::SettledChecker<okapi::QLength, okapi::QSpeed>>(2_in, 1_inps, 0.5_s),
-		std::make_unique<atum8::SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(2_deg, 10_degps, 0.5_s),
-		std::make_unique<atum8::SlewRate>(1),
-		std::make_unique<atum8::SlewRate>(1),
-		std::make_unique<pros::Imu>(1));
+	drive = atum8::SPMecanumBuilder()
+				.withRFMotor(17, true)
+				.withLFMotor(19)
+				.withLBMotor(12)
+				.withRBMotor(14, true)
+				.withBaseWidth(18_in)
+				.withWheelCircum(12.56_in)
+				.withForwardSettledChecker(2_in, 1_inps, 0.5_s)
+				.withTurnSettledChecker(2_deg, 10_degps, 0.5_s)
+				.withStickFunction([](int input)
+								   { return pow(input, 3) / 16129; })
+				.build();
 }
 
 void disabled()
@@ -88,12 +93,13 @@ void opcontrol()
 
 	atum8::UPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> testSettledChecker{
 		std::make_unique<atum8::SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(20_deg, 5_rpm, 1_s)};
+
 	while (true)
 	{
 		const int forward{master->get_analog(ANALOG_LEFT_Y)};
 		const int strafe{master->get_analog(ANALOG_LEFT_X)};
 		const int turn{master->get_analog(ANALOG_RIGHT_X)};
-		drive->move(forward, strafe, turn);
+		drive->driver(forward, strafe, turn);
 
 		catapult.move_voltage((catapultStateMachine.getState() == CatapultState::Ready) ? 0 : 12000);
 		catapultStateMachine.transition();
