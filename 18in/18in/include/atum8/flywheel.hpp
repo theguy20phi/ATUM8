@@ -7,8 +7,6 @@
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
 
-using namespace okapi::literals;
-
 namespace atum8
 {
     class Flywheel : public Task
@@ -16,7 +14,8 @@ namespace atum8
     public:
         Flywheel(UPMotor iMotor,
                  SPController iVelocityController,
-                 SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker);
+                 SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
+                 double iSpeedMultiplier = 6.0);
 
         void taskFn();
 
@@ -30,8 +29,13 @@ namespace atum8
 
         bool readyToFire() const;
 
+        SPController getVelocityController() const;
+
+        SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> getVelocitySettledChecker() const;
+
     private:
         UPMotor motor;
+        double speedMultiplier{6.0};
         SPController velocityController;
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> velocitySettledChecker;
         okapi::QAngularSpeed referenceSpeed{0_degps};
@@ -46,17 +50,20 @@ namespace atum8
         SPFlywheel build() const;
 
         SPFlywheelBuilder withMotor(int iPort,
-                                     bool iReverse,
-                                     const pros::motor_gearset_e_t iGearset);
+                                    bool iReverse = false,
+                                    const pros::motor_gearset_e_t &iGearset = pros::motor_gearset_e_t::E_MOTOR_GEAR_BLUE);
+
+        SPFlywheelBuilder withSpeedMultiplier(double iSpeedMultiplier);
 
         SPFlywheelBuilder withController(SPController iVelocityController);
 
-        SPFlywheelBuilder withController(SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker);
+        SPFlywheelBuilder withSettledChecker(SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker);
 
     private:
         int port;
         bool reverse;
         pros::motor_gearset_e_t gearset;
+        double speedMultiplier{6.0};
         SPController velocityController;
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> velocitySettledChecker;
     };

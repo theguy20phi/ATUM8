@@ -158,6 +158,46 @@ namespace atum8
         rBMotor->set_brake_mode(brakeMode);
     }
 
+    Mecanum::SPDimensions Mecanum::getDimensions() const
+    {
+        return dimensions;
+    }
+
+    Mecanum::SPDriverSettings Mecanum::getDriverSettings() const
+    {
+        return driverSettings;
+    }
+
+    SPController Mecanum::getForwardController() const
+    {
+        return forwardController;
+    }
+
+    SPController Mecanum::getTurnController() const
+    {
+        return turnController;
+    }
+
+    SPSettledChecker<okapi::QLength, okapi::QSpeed> Mecanum::getForwardSettledChecker() const
+    {
+        return forwardSettledChecker;
+    }
+
+    SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> Mecanum::getTurnSettledChecker() const
+    {
+        return turnSettledChecker;
+    }
+
+    SPSlewRate Mecanum::getForwardSlewRate() const
+    {
+        return forwardSlewRate;
+    }
+
+    SPSlewRate Mecanum::getTurnSlewRate() const
+    {
+        return turnSlewRate;
+    }
+
     void Mecanum::applyBrakes()
     {
         rFMotor->move_velocity(0);
@@ -188,7 +228,7 @@ namespace atum8
     /* -------------------------------------------------------------------------- */
     /*                               Mecanum Builder                              */
     /* -------------------------------------------------------------------------- */
-    
+
     SPMecanum SPMecanumBuilder::build() const
     {
         return std::make_shared<Mecanum>(std::make_unique<pros::Motor>(rFPort, rFGearset, rFReverse),

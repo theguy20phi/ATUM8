@@ -37,6 +37,15 @@
 #include "okapi/api.hpp"
 #include "atum8/atum8.hpp"
 
+atum8::SPGui gui;
+atum8::SPGui autonSelector;
+atum8::SPGui debugger;
+atum8::SPMecanum drive;
+atum8::SPFlywheel flywheel;
+atum8::SPIntake intake;
+
+void initializeLCD();
+
 /**
  * Prototypes for the competition control tasks are redefined here to ensure
  * that they can be called from user code (i.e. calling autonomous from a

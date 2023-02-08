@@ -13,6 +13,7 @@
 
 #include "mecanum.hpp"
 #include "flywheel.hpp"
+#include "intake.hpp"
 #include "constants.hpp"
 #include "stateMachine.hpp"
 #include "slewRate.hpp"

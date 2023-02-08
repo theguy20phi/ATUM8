@@ -75,6 +75,22 @@ namespace atum8
 
         void setBrakeMode(const pros::motor_brake_mode_e &brakeMode);
 
+        SPDimensions getDimensions() const;
+
+        SPDriverSettings getDriverSettings() const;
+
+        SPController getForwardController() const;
+
+        SPController getTurnController() const;
+
+        SPSettledChecker<okapi::QLength, okapi::QSpeed> getForwardSettledChecker() const;
+
+        SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> getTurnSettledChecker() const;
+
+        SPSlewRate getForwardSlewRate() const;
+        
+        SPSlewRate getTurnSlewRate() const;
+
     private:
         void applyBrakes();
         bool isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);

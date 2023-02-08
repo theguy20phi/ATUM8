@@ -16,6 +16,10 @@
 #include <array>
 #include "pros/motors.hpp"
 #include "pros/imu.hpp"
+#include "pros/adi.hpp"
+#include "okapi/api/units/QTime.hpp"
+
+using namespace okapi::literals;
 
 namespace atum8
 {
@@ -48,6 +52,15 @@ namespace atum8
     /* -------------------------------------------------------------------------- */
     /*                             Unlikely to Change                             */
     /* -------------------------------------------------------------------------- */
+
+    /**
+     * @brief Will wait for a specific condition to be true, or until max time is used (if
+     * it is set).
+     * 
+     * @param condition 
+     * @param maxTime 
+     */
+    void waitFor(const std::function<bool()> &condition, const okapi::QTime &maxTime = 0_s);
 
     /**
      * @brief Enum for different available colors.
@@ -89,4 +102,7 @@ namespace atum8
 
     using UPMotor = std::unique_ptr<pros::Motor>;
     using UPImu = std::unique_ptr<pros::Imu>;
+    using UPADIDigitalOut = std::unique_ptr<pros::ADIDigitalOut>;
+    using UPADIAnalogIn = std::unique_ptr<pros::ADIAnalogIn>;
+
 }

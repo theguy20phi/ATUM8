@@ -1,20 +1,9 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
-atum8::SPGui gui;
-atum8::SPGui autonSelector;
-atum8::SPGui debugger;
-atum8::SPMecanum drive;
-int number{0};
-
 void initialize()
 {
-	/* -------------------------------------------------------------------------- */
-	/*                             GUI Initialization                             */
-	/* -------------------------------------------------------------------------- */
-	pros::lcd::initialize();
-	pros::lcd::set_background_color(lv_color_t{0x000000});
-	pros::lcd::set_text_color(255, 255, 255);
+	initializeLCD();
 	autonSelector = std::make_shared<atum8::AutonSelector>();
 	debugger = std::make_shared<atum8::Debugger>(atum8::Debugger::LineFns{
 		[](int control)
@@ -22,22 +11,15 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "<we don't have a name yet>"; },
-		[](int control)
-		{ return "Here's a number: " + std::to_string(number += control); }});
+		{ return "<we don't have a name yet>"; }});
 	gui = autonSelector;
-	pros::lcd::register_btn0_cb([]()
-								{ gui->control(-1); });
-	pros::lcd::register_btn1_cb([]()
-								{ gui->control(0); });
-	pros::lcd::register_btn2_cb([]()
-								{ gui->control(1); });
+	gui->view();
 
 	drive = atum8::SPMecanumBuilder()
-				.withRFMotor(17, true)
-				.withLFMotor(19)
-				.withLBMotor(12)
-				.withRBMotor(14, true)
+				.withRFMotor(10)
+				.withLFMotor(20, true)
+				.withLBMotor(11, true)
+				.withRBMotor(1)
 				.withBaseWidth(18_in)
 				.withWheelCircum(12.56_in)
 				.withForwardSettledChecker(2_in, 1_inps, 0.5_s)
@@ -45,11 +27,19 @@ void initialize()
 				.withStickFunction([](int input)
 								   { return pow(input, 3) / 16129; })
 				.build();
+
+	intake = atum8::SPIntakeBuilder()
+				 .withMotor(5)
+				 .withPiston('D')
+				 .withLineTrackers('C', 'B', 'A')
+				 .withLineTrackerThreshold(1500)
+				 .build();
+	intake->start();
 }
 
 void disabled()
 {
-	gui = debugger;
+	gui = autonSelector;
 	gui->view();
 	while (true)
 		pros::delay(10);
@@ -57,7 +47,33 @@ void disabled()
 
 void autonomous() {}
 
-enum class CatapultState
+void opcontrol()
+{
+	gui = debugger;
+	gui->view();
+	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
+	while (true)
+	{
+		const int forward{master.get_analog(ANALOG_LEFT_Y)};
+		const int strafe{master.get_analog(ANALOG_LEFT_X)};
+		const int turn{master.get_analog(ANALOG_RIGHT_X)};
+		drive->driver(forward, strafe, turn);
+
+		if(master.get_digital(DIGITAL_L1))
+			intake->runIntake();
+		else if(master.get_digital(DIGITAL_L2))
+			intake->runIntake(-127);
+		else
+			intake->runIntake(0);
+		
+		if(master.get_digital_new_press(DIGITAL_R1))
+			intake->shoot();
+		
+		pros::delay(atum8::stdDelay);
+	}
+}
+
+/*enum class CatapultState
 {
 	Ready,
 	Shooting,
@@ -106,4 +122,21 @@ void opcontrol()
 
 		pros::delay(10);
 	}
+}*/
+
+/* -------------------------------------------------------------------------- */
+/*                                   Helpers                                  */
+/* -------------------------------------------------------------------------- */
+
+void initializeLCD()
+{
+	pros::lcd::initialize();
+	pros::lcd::set_background_color(lv_color_t{0x000000});
+	pros::lcd::set_text_color(255, 255, 255);
+	pros::lcd::register_btn0_cb([]()
+								{ gui->control(-1); });
+	pros::lcd::register_btn1_cb([]()
+								{ gui->control(0); });
+	pros::lcd::register_btn2_cb([]()
+								{ gui->control(1); });
 }

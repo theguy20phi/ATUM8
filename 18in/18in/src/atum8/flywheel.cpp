@@ -4,9 +4,11 @@ namespace atum8
 {
     Flywheel::Flywheel(UPMotor iMotor,
                        SPController iVelocityController,
-                       SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker) : motor{std::move(motor)},
-                                                                                                                      velocityController{iVelocityController},
-                                                                                                                      velocitySettledChecker{iVelocitySettledChecker} {}
+                       SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
+                       double iSpeedMultiplier) : motor{std::move(motor)},
+                                                  velocityController{iVelocityController},
+                                                  velocitySettledChecker{iVelocitySettledChecker},
+                                                  speedMultiplier{iSpeedMultiplier} {}
 
     void Flywheel::taskFn()
     {
@@ -18,6 +20,7 @@ namespace atum8
             if (output < 0)
                 output = 0;
             motor->move(output);
+            pros::delay(stdDelay);
         }
     }
 
@@ -33,7 +36,8 @@ namespace atum8
 
     okapi::QAngularSpeed Flywheel::getSpeed() const
     {
-        return motor->get_actual_velocity() * okapi::rpm;
+        // speedMultiplier adjusts for modifications to motor cartridges
+        return motor->get_actual_velocity() * speedMultiplier * okapi::rpm;
     }
 
     bool Flywheel::readyToFire(okapi::QAngularSpeed speedError)
@@ -44,6 +48,16 @@ namespace atum8
     bool Flywheel::readyToFire() const
     {
         return velocitySettledChecker->isSettled();
+    }
+
+    SPController Flywheel::getVelocityController() const
+    {
+        return velocityController;
+    }
+
+    SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> Flywheel::getVelocitySettledChecker() const
+    {
+        return velocitySettledChecker;
     }
 
     /* -------------------------------------------------------------------------- */
@@ -59,7 +73,7 @@ namespace atum8
 
     SPFlywheelBuilder SPFlywheelBuilder::withMotor(int iPort,
                                                    bool iReverse,
-                                                   const pros::motor_gearset_e_t iGearset)
+                                                   const pros::motor_gearset_e_t &iGearset)
     {
         port = iPort;
         reverse = iReverse;
@@ -73,7 +87,7 @@ namespace atum8
         return *this;
     }
 
-    SPFlywheelBuilder SPFlywheelBuilder::withController(SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker)
+    SPFlywheelBuilder SPFlywheelBuilder::withSettledChecker(SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker)
     {
         velocitySettledChecker = iVelocitySettledChecker;
         return *this;
