@@ -1,6 +1,10 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
+atum8::SPTbh flywheelVelController;
+atum8::SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> flywheelSettledChecker;
+double kTbh{0.00025};
+
 void initialize()
 {
 	initializeLCD();
@@ -11,14 +15,14 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "<we don't have a name yet>"; }});
+		{ return "JANKLET"; }});
 	gui = autonSelector;
 	gui->view();
 
 	drive = atum8::SPMecanumBuilder()
 				.withRFMotor(10)
-				.withLFMotor(20, true)
-				.withLBMotor(11, true)
+				.withLFMotor(-20)
+				.withLBMotor(-11)
 				.withRBMotor(1)
 				.withBaseWidth(18_in)
 				.withWheelCircum(12.56_in)
@@ -26,15 +30,31 @@ void initialize()
 				.withTurnSettledChecker(2_deg, 10_degps, 0.5_s)
 				.withStickFunction([](int input)
 								   { return pow(input, 3) / 16129; })
+				.withBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD)
 				.build();
 
 	intake = atum8::SPIntakeBuilder()
-				 .withMotor(5)
+				 .withMotor(13)
 				 .withPiston('D')
 				 .withLineTrackers('C', 'B', 'A')
 				 .withLineTrackerThreshold(1500)
 				 .build();
 	intake->start();
+
+	roller = atum8::SPRollerBuilder()
+				 .withMotor(-5)
+				 .withOptical(6)
+				 .build();
+	roller->start();
+
+	flywheelVelController = std::make_shared<atum8::Tbh>(kTbh);
+	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(200_rpm, 1000_rpmpm, 0.5_s);
+	flywheel = atum8::SPFlywheelBuilder()
+				   .withMotors({16, 17})
+				   .withController(flywheelVelController)
+				   .withSettledChecker(flywheelSettledChecker)
+				   .build();
+	flywheel->start();
 }
 
 void disabled()
@@ -42,7 +62,10 @@ void disabled()
 	gui = autonSelector;
 	gui->view();
 	while (true)
+	{
+		roller->setColor(autonSelector->getMatchInfo().color);
 		pros::delay(10);
+	}
 }
 
 void autonomous() {}
@@ -52,6 +75,8 @@ void opcontrol()
 	gui = debugger;
 	gui->view();
 	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
+	flywheel->setReferenceSpeed(2100_rpm);
+
 	while (true)
 	{
 		const int forward{master.get_analog(ANALOG_LEFT_Y)};
@@ -59,16 +84,29 @@ void opcontrol()
 		const int turn{master.get_analog(ANALOG_RIGHT_X)};
 		drive->driver(forward, strafe, turn);
 
-		if(master.get_digital(DIGITAL_L1))
-			intake->runIntake();
-		else if(master.get_digital(DIGITAL_L2))
+		if (master.get_digital(DIGITAL_L1))
+			intake->runIntake(127);
+		else if (master.get_digital(DIGITAL_L2))
 			intake->runIntake(-127);
 		else
 			intake->runIntake(0);
-		
-		if(master.get_digital_new_press(DIGITAL_R1))
+
+		if (master.get_digital_new_press(DIGITAL_R2))
 			intake->shoot();
-		
+
+		if (master.get_digital(DIGITAL_R1))
+			roller->runRoller(127);
+		else
+			roller->runRoller(0);
+
+		if (master.get_digital_new_press(DIGITAL_A))
+		{
+			if (flywheel->getReferenceSpeed() == 0_rpm)
+				flywheel->setReferenceSpeed(2100_rpm);
+			else
+				flywheel->setReferenceSpeed(0_rpm);
+		}
+
 		pros::delay(atum8::stdDelay);
 	}
 }
