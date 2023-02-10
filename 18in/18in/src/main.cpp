@@ -99,7 +99,7 @@ void opcontrol()
 		else
 			roller->runRoller(0);
 
-		if (master.get_digital_new_press(DIGITAL_A))
+		if (master.get_digital_new_press(DIGITAL_Y))
 		{
 			if (flywheel->getReferenceSpeed() == 0_rpm)
 				flywheel->setReferenceSpeed(2100_rpm);
