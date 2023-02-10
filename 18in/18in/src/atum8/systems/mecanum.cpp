@@ -62,15 +62,17 @@ namespace atum8
         tare();
         setBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
         okapi::QLength distanceError{distance - getDistance()};
-        okapi::QAngle angleError{getAngle()};
+        okapi::QAngle angleError{okapi::OdomMath::constrainAngle180(-getAngle())};
         const okapi::QTime startTime{pros::millis() * okapi::millisecond};
         while (!isSettled(distanceError, angleError) &&
-               !isTimeExpired(startTime, maxTime))
+               isTimeNotExpired(startTime, maxTime))
         {
-            distanceError = distance - getDistance();
-            angleError = getAngle();
+            distanceError = distance - getDistance();   
+            angleError = -getAngle();
             move(useForwardController(distanceError, maxForward),
+                 0,
                  useTurnController(angleError));
+            pros::delay(atum8::stdDelay);
         }
         move(); // Stop the drive
     }
@@ -79,13 +81,15 @@ namespace atum8
     {
         tare();
         setBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
-        okapi::QAngle angleError{angle - getAngle()};
+        okapi::QAngle angleError{okapi::OdomMath::constrainAngle180(angle - getAngle())};
         const okapi::QTime startTime{pros::millis() * okapi::millisecond};
+        std::cout << turnSettledChecker->isSettled(angleError) << std::endl;
         while (!turnSettledChecker->isSettled(angleError) &&
-               !isTimeExpired(startTime, maxTime))
+               isTimeNotExpired(startTime, maxTime))
         {
-            angleError = angle - getAngle();
-            move(0, useTurnController(angleError, maxTurn));
+            angleError = okapi::OdomMath::constrainAngle180(angle - getAngle());
+            move(0, 0, useTurnController(angleError, maxTurn));
+            pros::delay(atum8::stdDelay);
         }
         move(); // Stop the drive
     }
@@ -111,13 +115,13 @@ namespace atum8
         avgRotation += lBMotor->get_position();
         avgRotation += rBMotor->get_position();
         avgRotation /= 4;
-        return avgRotation * dimensions->wheelCircum;
+        return avgRotation / 360 * dimensions->wheelCircum;
     }
 
     okapi::QAngle Mecanum::getAngle() const
     {
-        const double lAvgRotation{(lFMotor->get_position() + lBMotor->get_position()) / 2};
-        const double rAvgRotation{(rFMotor->get_position() + rBMotor->get_position()) / 2};
+        const double lAvgRotation{(lFMotor->get_position() + lBMotor->get_position()) / 2000};
+        const double rAvgRotation{(rFMotor->get_position() + rBMotor->get_position()) / 2000};
         const okapi::QLength diff{(lAvgRotation - rAvgRotation) * dimensions->wheelCircum};
         const okapi::QAngle driveAngle{(diff / dimensions->baseWidth) * okapi::radian};
         if (imu)
@@ -135,10 +139,9 @@ namespace atum8
     {
         move();
         tare();
-        forwardController->reset();
-        turnController->reset();
         // This will calibrate the IMU and block!
-        imu->reset(true);
+        if (imu)
+            imu->reset(true);
     }
 
     void Mecanum::tare()
@@ -148,6 +151,9 @@ namespace atum8
         lBMotor->tare_position();
         rBMotor->tare_position();
         imu->tare_rotation();
+        forwardController->reset();
+        turnController->reset();
+        forwardSlewRate->reset();
     }
 
     void Mecanum::setBrakeMode(const pros::motor_brake_mode_e &brakeMode)
@@ -206,9 +212,9 @@ namespace atum8
         rBMotor->move_velocity(0);
     }
 
-    bool Mecanum::isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
+    bool Mecanum::isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
     {
-        return (pros::millis() * okapi::millisecond - startTime) <= maxTime;
+        return (pros::millis() * okapi::millisecond - startTime) <= maxTime || maxTime == 0_s;
     }
 
     int Mecanum::useForwardController(const okapi::QLength &distanceError, int maxForward)
@@ -219,7 +225,7 @@ namespace atum8
     }
 
     int Mecanum::useTurnController(const okapi::QAngle &angleError, int maxTurn)
-    {
+    {;
         double turnOutput{turnController->getOutput(angleError.convert(okapi::degree))};
         turnOutput = turnSlewRate ? turnSlewRate->slew(turnOutput) : turnOutput;
         return std::clamp((int)turnOutput, -maxTurn, maxTurn);

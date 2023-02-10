@@ -35,6 +35,11 @@ namespace atum8
         motor->move(speed);
     }
 
+    void Roller::runForAt(double position, int velocity)
+    {
+        motor->move_relative(position, velocity);
+    }
+
     void Roller::turnToColor()
     {
         turningToColor = true;

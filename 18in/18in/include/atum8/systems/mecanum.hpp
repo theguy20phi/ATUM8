@@ -4,9 +4,12 @@
 #include "okapi/api/units/QSpeed.hpp"
 #include "okapi/api/units/QAngle.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
+#include "okapi/api/odometry/odomMath.hpp"
 #include "atum8/controllers/controller.hpp"
 #include "atum8/settledChecker.hpp"
 #include "atum8/slewRate.hpp"
+
+#include <iostream>
 
 using namespace okapi::literals;
 
@@ -93,7 +96,7 @@ namespace atum8
 
     private:
         void applyBrakes();
-        bool isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
+        bool isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
         int useForwardController(const okapi::QLength &distanceError, int maxForward = 127);
         int useTurnController(const okapi::QAngle &angleError, int maxTurn = 127);
         UPMotor rFMotor;

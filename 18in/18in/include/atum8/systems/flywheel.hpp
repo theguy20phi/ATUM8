@@ -6,7 +6,6 @@
 #include "atum8/task.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
-#include <iostream>
 
 namespace atum8
 {

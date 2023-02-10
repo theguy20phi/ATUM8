@@ -10,18 +10,19 @@
 #pragma once
 
 #include "okapi/api/units/RQuantity.hpp"
+#include "okapi/api/units/QAngle.hpp"
 
 namespace okapi {
 QUANTITY_TYPE(0, 0, -2, 1, QAngularAcceleration)
 
-constexpr QAngularAcceleration rpmpm = (360 * degree) / (minute * minute);
+constexpr QAngularAcceleration rpmps = (360.0 * degree) / (minute * second);
 
 inline namespace literals {
-constexpr QAngularAcceleration operator"" _rpmpm(long double x) {
-  return x * rpmpm;
+constexpr QAngularAcceleration operator"" _rpmps(long double x) {
+  return x * rpmps;
 }
-constexpr QAngularAcceleration operator"" _rpmpm(unsigned long long int x) {
-  return static_cast<double>(x) * rpmpm;
+constexpr QAngularAcceleration operator"" _rpmps(unsigned long long int x) {
+  return static_cast<double>(x) * rpmps;
 }
 } // namespace literals
 }

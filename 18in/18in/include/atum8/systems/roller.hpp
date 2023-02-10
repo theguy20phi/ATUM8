@@ -12,7 +12,9 @@ namespace atum8
 
         void taskFn();
 
-        void runRoller(int speed = 50);
+        void runRoller(int speed = 127);
+
+        void runForAt(double position, int speed = 50);
 
         void turnToColor();
 

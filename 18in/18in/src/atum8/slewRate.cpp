@@ -27,4 +27,9 @@ namespace atum8
     {
         return maxChange;
     }
+
+    void SlewRate::reset()
+    {
+        output = 0;
+    }
 };

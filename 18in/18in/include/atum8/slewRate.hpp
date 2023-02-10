@@ -62,6 +62,12 @@ namespace atum8
          * @return double 
          */
         double getMaxChange() const;
+        
+        /**
+         * @brief Resets output to 0.
+         * 
+         */
+        void reset();
 
     private:
         double output{0};

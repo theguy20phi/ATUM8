@@ -2,9 +2,9 @@
 
 namespace atum8
 {
-    PidFF::PidFF(double kP, double kI, double kD, double FF) : PidFF::PidFF(PidFF::Parameters{kP, kI, kD, FF}) {}
+    PidFF::PidFF(double kP, double kI, double kD, double FF) : PidFF::PidFF{PidFF::Parameters{kP, kI, kD, FF}} {}
 
-    PidFF::PidFF(const PidFF::Parameters &iParams) : params(iParams) {}
+    PidFF::PidFF(const PidFF::Parameters &iParams) : params{iParams} {}
 
     double PidFF::getOutput(double state, double reference)
     {
@@ -60,7 +60,8 @@ namespace atum8
         return params;
     }
 
-    void PidFF::reset() {
+    void PidFF::reset()
+    {
         Controller::reset();
         prevError = 0;
         I = 0;

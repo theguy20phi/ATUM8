@@ -15,7 +15,6 @@ namespace atum8
 
     void Flywheel::taskFn()
     {
-        
         motorGroup->set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
         while (true)
         {
@@ -24,7 +23,6 @@ namespace atum8
             double output{velocityController->getOutput(error.convert(okapi::rpm))};
             if (referenceSpeed == 0_rpm || output <= 0)
                 output = 0;
-            std::cout << output << " " << getSpeed().convert(okapi::rpm) << " " << error.convert(okapi::rpm) << std::endl;
             motorGroup->move(output);
             pros::delay(stdDelay);
         }

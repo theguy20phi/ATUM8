@@ -1,9 +1,10 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
+atum8::SPPidFF forwardPidFF;
+atum8::SPPidFF turnPidFF;
 atum8::SPTbh flywheelVelController;
 atum8::SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> flywheelSettledChecker;
-double kTbh{0.00025};
 
 void initialize()
 {
@@ -17,21 +18,26 @@ void initialize()
 		[](int control)
 		{ return "JANKLET"; }});
 	gui = autonSelector;
-	gui->view();
 
+	forwardPidFF = std::make_shared<atum8::PidFF>(6.0, 0.2);
+	turnPidFF = std::make_shared<atum8::PidFF>(3.0, 0.1);
 	drive = atum8::SPMecanumBuilder()
 				.withRFMotor(10)
 				.withLFMotor(-20)
 				.withLBMotor(-11)
 				.withRBMotor(1)
-				.withBaseWidth(18_in)
-				.withWheelCircum(12.56_in)
+				.withImu(19, 1.0)
+				.withBaseWidth(12.75_in)
+				.withWheelCircum(6.28_in)
+				.withForwardController(forwardPidFF)
+				.withForwardSlew(2.5)
+				.withTurnController(turnPidFF)
 				.withForwardSettledChecker(2_in, 1_inps, 0.5_s)
 				.withTurnSettledChecker(2_deg, 10_degps, 0.5_s)
 				.withStickFunction([](int input)
 								   { return pow(input, 3) / 16129; })
-				.withBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD)
 				.build();
+	drive->reset();
 
 	intake = atum8::SPIntakeBuilder()
 				 .withMotor(13)
@@ -47,8 +53,8 @@ void initialize()
 				 .build();
 	roller->start();
 
-	flywheelVelController = std::make_shared<atum8::Tbh>(kTbh);
-	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(200_rpm, 1000_rpmpm, 0.5_s);
+	flywheelVelController = std::make_shared<atum8::Tbh>(0.001);
+	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(50_rpm, 15000_rpmps, 0.25_s);
 	flywheel = atum8::SPFlywheelBuilder()
 				   .withMotors({16, 17})
 				   .withController(flywheelVelController)
@@ -68,7 +74,31 @@ void disabled()
 	}
 }
 
-void autonomous() {}
+void autonomous()
+{
+	flywheel->setReferenceSpeed(2100_rpm);
+	roller->runForAt(480, 127);
+	drive->forward(-5_ft, 3_s, 50);
+	drive->forward(1.5_ft, 3_s);
+	drive->turn(90_deg, 3_s);
+	intake->runIntake();
+	drive->forward(-1.1_tile, 3_s);
+	intake->runIntake(0);
+	roller->runForAt(300, 127);
+	drive->forward(-5_ft, 3_s, 30);
+	drive->forward(1_ft, 3_s);
+	drive->turn(-90_deg, 3_s);
+	drive->forward(2_tile, 6_s);
+	drive->turn(-5_deg, 3_s);
+	for (int i = 0; i < 3; i++)
+	{
+		while (!flywheel->readyToFire())
+			pros::delay(1000);
+		intake->shoot();
+		pros::delay(1000);
+	}
+	drive->forward(-0.25_tile, 3_s);
+}
 
 void opcontrol()
 {
