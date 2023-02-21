@@ -6,11 +6,24 @@ namespace atum8
 
     PidFF::PidFF(const PidFF::Parameters &iParams) : params{iParams} {}
 
+    // Quite a bit of duplication here, should later be fixed
     double PidFF::getOutput(double state, double reference)
     {
-        return getOutput(reference - state);
+        if (!sampleTimePassed())
+            return output;
+        const double error{reference - state};
+        const double P{params.kP * error};
+        updateI(error);
+        const double errorDiff{error - prevError};
+        prevError = error;
+        // Prevents derivative kick when reference changes
+        const double D{(abs(errorDiff) > 1 / params.kD) ? 0 : params.kD * errorDiff};
+        const double FF{params.FF * reference};
+        output = P + I + D + FF;
+        return output;
     }
 
+    // Quite a bit of duplication here, should later be fixed
     double PidFF::getOutput(double error)
     {
         if (!sampleTimePassed())

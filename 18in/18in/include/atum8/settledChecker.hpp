@@ -3,8 +3,8 @@
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Implements a simple algorithm to check if a system
  * has settled.
- * @version 0.1
- * @date 2023-02-05
+ * @version 0.2
+ * @date 2023-02-20
  *
  * @copyright Copyright (c) 2023
  *
@@ -47,6 +47,19 @@ namespace atum8
         }
 
         /**
+         * @brief Passes on the difference between reference and state to isSettled(const Unit&).
+         *
+         * @param state
+         * @param reference
+         * @return true
+         * @return false
+         */
+        bool isSettled(const Unit &state, const Unit &reference)
+        {
+            return isSettled(reference - state);
+        }
+
+        /**
          * @brief Given the current value of the system, will check if a system has
          * been within a boundary for both the value and its derivative with respect to time
          * and has been there for a certain amount of time.
@@ -72,7 +85,7 @@ namespace atum8
         }
 
         /**
-         * @brief Returns if the system was settled based on the last call of 
+         * @brief Returns if the system was settled based on the last call of
          * isSettled(const Unit&).
          *
          * @return true
@@ -93,10 +106,9 @@ namespace atum8
         okapi::QTime prevTimeInBounds;
     };
 
-    
     template <typename Unit, typename UnitDeriv>
     using UPSettledChecker = std::unique_ptr<SettledChecker<Unit, UnitDeriv>>;
-    
+
     template <typename Unit, typename UnitDeriv>
     using SPSettledChecker = std::shared_ptr<SettledChecker<Unit, UnitDeriv>>;
 }

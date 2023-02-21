@@ -3,9 +3,8 @@
 
 atum8::SPPidFF forwardPidFF;
 atum8::SPPidFF turnPidFF;
-atum8::SPTbh flywheelVelController;
+atum8::SPPidFF flywheelVelController;
 atum8::SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> flywheelSettledChecker;
-double kTbh{0.001};
 double reference{2100};
 
 void initialize()
@@ -19,17 +18,13 @@ void initialize()
 		{ return "IT'S YA BOY:"; },
 		[](int control)
 		{ return "JANKLET"; },
-		[](int control) {
-			kTbh += control * 0.0001;
-			flywheelVelController->setKTbh(kTbh);
-			return "kTbh: " + std::to_string(kTbh);
-		},
-		[](int control) {
+		[](int control)
+		{
 			reference += control * 100;
 			flywheel->setReferenceSpeed(reference * okapi::rpm);
 			return "Reference: " + std::to_string(reference);
-
-		}});
+		}
+	});
 	gui = autonSelector;
 
 	forwardPidFF = std::make_shared<atum8::PidFF>(6.0, 0.2);
@@ -66,14 +61,13 @@ void initialize()
 				 .build();
 	roller->start();
 
-	flywheelVelController = std::make_shared<atum8::Tbh>(kTbh);
+	flywheelVelController = std::make_shared<atum8::PidFF>(7.75, 0, 0, 4.35);
 	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(50_rpm, 15000_rpmps, 0.25_s);
 	flywheel = atum8::SPFlywheelBuilder()
-				   .withMotorA(16)
-				   .withMotorB(-17)
+				   .withMotors({16, -17})
 				   .withController(flywheelVelController)
 				   .withSettledChecker(flywheelSettledChecker)
-				   .withSpeedMultiplier(5.0)
+				   .withSpeedMultiplier(15.0)
 				   .build();
 	flywheel->start();
 }

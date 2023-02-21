@@ -2,18 +2,15 @@
 
 namespace atum8
 {
-    Flywheel::Flywheel(UPMotor iMotorA,
-                       UPMotor iMotorB,
+    Flywheel::Flywheel(UPMotorGroup iMotorGroup,
                        SPController iVelocityController,
                        SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
-                       double iSpeedMultiplier) : motorA{std::move(iMotorA)},
-                                                  motorB{std::move(iMotorB)},
+                       double iSpeedMultiplier) : motorGroup{std::move(iMotorGroup)},
                                                   velocityController{iVelocityController},
                                                   velocitySettledChecker{iVelocitySettledChecker},
                                                   speedMultiplier{iSpeedMultiplier}
     {
-        motorA->set_brake_mode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
-        motorB->set_brake_mode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
+        motorGroup->set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
     }
 
     void Flywheel::taskFn()
@@ -21,13 +18,11 @@ namespace atum8
         while (true)
         {
             const okapi::QAngularSpeed error{referenceSpeed - getSpeed()};
-            velocitySettledChecker->isSettled(error);
-            double output{velocityController->getOutput(error.convert(okapi::rpm))};
+            velocitySettledChecker->isSettled(referenceSpeed - getSpeed());
+            double output{velocityController->getOutput(getSpeed().convert(okapi::rpm), referenceSpeed.convert(okapi::rpm))};
             if (referenceSpeed == 0_rpm || output <= 0)
                 output = 0;
-            std::cout << getSpeed().convert(okapi::rpm) << " " << error.convert(okapi::rpm) << std::endl;
-            motorA->move(output);
-            motorB->move(output);
+            motorGroup->move_voltage(output);
             pros::delay(stdDelay);
         }
     }
@@ -44,10 +39,12 @@ namespace atum8
 
     okapi::QAngularSpeed Flywheel::getSpeed() const
     {
-        double velocity{motorA->get_actual_velocity() + motorB->get_actual_velocity()};
-        velocity /= 2.0;
-        // speedMultiplier adjusts for modifications to motor cartridges
-        return velocity * speedMultiplier * okapi::rpm;
+        double avgRawVelocity{0.0};
+        for (double velocity : motorGroup->get_actual_velocities())
+            avgRawVelocity += velocity;
+        avgRawVelocity /= motorGroup->size();
+        // speedMultiplier adjusts for gearing
+        return avgRawVelocity * speedMultiplier * okapi::rpm;
     }
 
     bool Flywheel::readyToFire(okapi::QAngularSpeed speedError)
@@ -76,26 +73,15 @@ namespace atum8
 
     SPFlywheel SPFlywheelBuilder::build() const
     {
-        return std::make_shared<Flywheel>(std::make_unique<pros::Motor>(portA, gearsetA),
-                                          std::make_unique<pros::Motor>(portB, gearsetB),
+        return std::make_shared<Flywheel>(std::make_unique<pros::MotorGroup>(ports),
                                           velocityController,
                                           velocitySettledChecker,
                                           speedMultiplier);
     }
 
-    SPFlywheelBuilder SPFlywheelBuilder::withMotorA(int port,
-                                                    const pros::motor_gearset_e_t &gearset)
+    SPFlywheelBuilder SPFlywheelBuilder::withMotors(const std::vector<std::int8_t> &iPorts)
     {
-        portA = port;
-        gearsetA = gearset;
-        return *this;
-    }
-
-    SPFlywheelBuilder SPFlywheelBuilder::withMotorB(int port,
-                                                    const pros::motor_gearset_e_t &gearset)
-    {
-        portB = port;
-        gearsetB = gearset;
+        ports = iPorts;
         return *this;
     }
 
