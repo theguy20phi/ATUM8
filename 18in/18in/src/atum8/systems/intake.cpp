@@ -22,13 +22,13 @@ namespace atum8
         {
             if (shooting)
             {
-                piston->set_value(1);
+                piston->set_value(0);
                 waitFor([this]()
                         { return lowLineTracker->get_value() >= lineTrackerThreshold; },
                         1_s);
-                piston->set_value(0);
                 shooting = false;
             }
+            piston->set_value(1);
             pros::delay(stdDelay);
         }
     }

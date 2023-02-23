@@ -5,7 +5,8 @@ atum8::SPPidFF forwardPidFF;
 atum8::SPPidFF turnPidFF;
 atum8::SPPidFF flywheelVelController;
 atum8::SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> flywheelSettledChecker;
-double reference{2100};
+constexpr okapi::QAngularSpeed lowSpeed{2100_rpm};
+constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
 
 void initialize()
 {
@@ -17,13 +18,7 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "JANKLET"; },
-		[](int control)
-		{
-			reference += control * 100;
-			flywheel->setReferenceSpeed(reference * okapi::rpm);
-			return "Reference: " + std::to_string(reference);
-		}
+		{ return "JANKLET"; }
 	});
 	gui = autonSelector;
 
@@ -61,8 +56,8 @@ void initialize()
 				 .build();
 	roller->start();
 
-	flywheelVelController = std::make_shared<atum8::PidFF>(7.75, 0, 0, 4.35);
-	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(50_rpm, 15000_rpmps, 0.25_s);
+	flywheelVelController = std::make_shared<atum8::PidFF>(0.01, 0, 0, 4.23);
+	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(150_rpm, 0_rpmps, 0_s);
 	flywheel = atum8::SPFlywheelBuilder()
 				   .withMotors({16, -17})
 				   .withController(flywheelVelController)
@@ -85,7 +80,7 @@ void disabled()
 
 void autonomous()
 {
-	flywheel->setReferenceSpeed(2100_rpm);
+	flywheel->setReferenceSpeed(lowSpeed);
 	drive->forward(-5_ft, 3_s, 15);
 	roller->runForAt(320, 127);
 	drive->forward(-5_ft, 3_s, 0);
@@ -116,7 +111,8 @@ void opcontrol()
 	gui = debugger;
 	gui->view();
 	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
-	flywheel->setReferenceSpeed(2100_rpm);
+	flywheel->setReferenceSpeed(lowSpeed);
+	bool prevFlywheelSettled{false};
 
 	while (true)
 	{
@@ -132,20 +128,32 @@ void opcontrol()
 		else
 			intake->runIntake(0);
 
-		if (master.get_digital_new_press(DIGITAL_R2))
-			intake->shoot();
 
 		if (master.get_digital(DIGITAL_R1))
 			roller->runRoller(127);
 		else
 			roller->runRoller(0);
 
+		if (master.get_digital_new_press(DIGITAL_R2))
+			intake->shoot();
+
+		if(flywheelSettledChecker->isSettled() && !prevFlywheelSettled)
+			master.rumble("..");
+		prevFlywheelSettled = flywheelSettledChecker->isSettled();
+
 		if (master.get_digital_new_press(DIGITAL_Y))
 		{
-			if (flywheel->getReferenceSpeed() == 0_rpm)
-				flywheel->setReferenceSpeed(2100_rpm);
-			else
-				flywheel->setReferenceSpeed(0_rpm);
+			switch((int)flywheel->getReferenceSpeed().convert(okapi::rpm)) {
+				case 0:
+					flywheel->setReferenceSpeed(lowSpeed);
+					break;
+				case 2100:
+					flywheel->setReferenceSpeed(highSpeed);
+					break;
+				default:
+					flywheel->setReferenceSpeed(0_rpm);
+					break;
+			}
 		}
 
 		pros::delay(atum8::stdDelay);

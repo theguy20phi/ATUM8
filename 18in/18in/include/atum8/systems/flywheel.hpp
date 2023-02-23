@@ -7,6 +7,8 @@
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
 
+#include <iostream>
+
 namespace atum8
 {
     class Flywheel : public Task

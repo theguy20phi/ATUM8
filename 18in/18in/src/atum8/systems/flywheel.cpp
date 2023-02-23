@@ -17,11 +17,12 @@ namespace atum8
     {
         while (true)
         {
-            const okapi::QAngularSpeed error{referenceSpeed - getSpeed()};
-            velocitySettledChecker->isSettled(referenceSpeed - getSpeed());
-            double output{velocityController->getOutput(getSpeed().convert(okapi::rpm), referenceSpeed.convert(okapi::rpm))};
+            const okapi::QAngularSpeed speed{getSpeed()};
+            velocitySettledChecker->isSettled(speed, referenceSpeed);
+            double output{velocityController->getOutput(speed.convert(okapi::rpm), referenceSpeed.convert(okapi::rpm))};
             if (referenceSpeed == 0_rpm || output <= 0)
                 output = 0;
+            std::cout << speed.convert(okapi::rpm) << " " << output << std::endl;
             motorGroup->move_voltage(output);
             pros::delay(stdDelay);
         }

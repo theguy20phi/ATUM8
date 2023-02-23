@@ -3,7 +3,7 @@
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Implements a simple algorithm to check if a system
  * has settled.
- * @version 0.2
+ * @version 0.3
  * @date 2023-02-20
  *
  * @copyright Copyright (c) 2023
@@ -74,9 +74,9 @@ namespace atum8
             const UnitDeriv velocity{(distance - prevDistance) / (time - prevTime)};
             prevDistance = distance;
             prevTime = time;
-            if (abs(distance) <= maxDistance && abs(velocity) <= maxVelocity)
+            if (abs(distance) <= maxDistance && (abs(velocity) <= maxVelocity || !maxVelocity.getValue()))
             {
-                settled = (time - prevTimeInBounds) >= minTime;
+                settled = (time - prevTimeInBounds >= minTime) || !minTime.getValue();
                 return settled;
             }
             prevTimeInBounds = time;
