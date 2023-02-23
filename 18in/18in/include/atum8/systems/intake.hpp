@@ -21,6 +21,8 @@ namespace atum8
 
         void shoot();
 
+        bool isShooting() const;
+
         int getNumberOfDisks() const;
 
         void setLineTrackerThreshold(int iLineTrackerThreshold);

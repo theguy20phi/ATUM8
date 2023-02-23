@@ -18,8 +18,7 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "JANKLET"; }
-	});
+		{ return "ANUBIS"; }});
 	gui = autonSelector;
 
 	forwardPidFF = std::make_shared<atum8::PidFF>(6.0, 0.2);
@@ -53,6 +52,7 @@ void initialize()
 	roller = atum8::SPRollerBuilder()
 				 .withMotor(5)
 				 .withOptical(6)
+				 .withColor(atum8::Color::Red)
 				 .build();
 	roller->start();
 
@@ -112,15 +112,19 @@ void opcontrol()
 	gui->view();
 	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
 	flywheel->setReferenceSpeed(lowSpeed);
-	bool prevFlywheelSettled{false};
+	bool manualRoller{true};
+	bool readyNotified{false};
 
 	while (true)
 	{
+		// Drive Controls
 		const int forward{master.get_analog(ANALOG_LEFT_Y)};
 		const int strafe{master.get_analog(ANALOG_LEFT_X)};
 		const int turn{master.get_analog(ANALOG_RIGHT_X)};
 		drive->driver(forward, strafe, turn);
 
+
+		// Intake Controls
 		if (master.get_digital(DIGITAL_L1))
 			intake->runIntake(127);
 		else if (master.get_digital(DIGITAL_L2))
@@ -129,87 +133,52 @@ void opcontrol()
 			intake->runIntake(0);
 
 
-		if (master.get_digital(DIGITAL_R1))
-			roller->runRoller(127);
+		// Roller Controls
+		if (manualRoller)
+		{
+			if (master.get_digital(DIGITAL_R1))
+				roller->runRoller();
+			else
+				roller->runRoller(0);
+		}
 		else
-			roller->runRoller(0);
+			roller->turnToColor();
 
+		if(master.get_digital_new_press(DIGITAL_X))
+			manualRoller = !manualRoller;
+
+
+		// Shooter Controls
 		if (master.get_digital_new_press(DIGITAL_R2))
 			intake->shoot();
 
-		if(flywheelSettledChecker->isSettled() && !prevFlywheelSettled)
+		if (intake->isShooting())
+			readyNotified = false;
+		else if (flywheelSettledChecker->isSettled() && !readyNotified)
+		{
 			master.rumble("..");
-		prevFlywheelSettled = flywheelSettledChecker->isSettled();
+			readyNotified = true;
+		}
 
 		if (master.get_digital_new_press(DIGITAL_Y))
 		{
-			switch((int)flywheel->getReferenceSpeed().convert(okapi::rpm)) {
-				case 0:
-					flywheel->setReferenceSpeed(lowSpeed);
-					break;
-				case 2100:
-					flywheel->setReferenceSpeed(highSpeed);
-					break;
-				default:
-					flywheel->setReferenceSpeed(0_rpm);
-					break;
+			switch ((int)flywheel->getReferenceSpeed().convert(okapi::rpm))
+			{
+			case 0:
+				flywheel->setReferenceSpeed(lowSpeed);
+				break;
+			case (int)lowSpeed.convert(okapi::rpm):
+				flywheel->setReferenceSpeed(highSpeed);
+				break;
+			default:
+				flywheel->setReferenceSpeed(0_rpm);
+				break;
 			}
 		}
 
 		pros::delay(atum8::stdDelay);
 	}
 }
-
-/*enum class CatapultState
-{
-	Ready,
-	Shooting,
-	Preparing
-};
-
-void opcontrol()
-{
-	gui = debugger;
-	gui->view();
-
-	auto master{std::make_shared<pros::Controller>(CONTROLLER_MASTER)};
-
-	pros::Motor catapultL{2, pros::motor_gearset_e_t::E_MOTOR_GEAR_RED};
-	pros::Motor catapultR{4, pros::motor_gearset_e_t::E_MOTOR_GEAR_RED, true};
-	pros::MotorGroup catapult{catapultL, catapultR};
-	pros::ADIDigitalIn catapultSwitch{'A'};
-	atum8::StateMachine<CatapultState>::Transitions catapultTransitions{
-		{CatapultState::Ready, [master]()
-		 {
-			 return master->get_digital_new_press(DIGITAL_R1) ? CatapultState::Shooting : CatapultState::Ready;
-		 }},
-		{CatapultState::Shooting, [catapultSwitch]()
-		 {
-			 return !catapultSwitch.get_value() ? CatapultState::Preparing : CatapultState::Shooting;
-		 }},
-		{CatapultState::Preparing, [catapultSwitch]()
-		 {
-			 return catapultSwitch.get_value() ? CatapultState::Ready : CatapultState::Preparing;
-		 }}};
-	atum8::StateMachine<CatapultState> catapultStateMachine{CatapultState::Preparing, catapultTransitions};
-	catapult.set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD);
-
-	atum8::UPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> testSettledChecker{
-		std::make_unique<atum8::SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(20_deg, 5_rpm, 1_s)};
-
-	while (true)
-	{
-		const int forward{master->get_analog(ANALOG_LEFT_Y)};
-		const int strafe{master->get_analog(ANALOG_LEFT_X)};
-		const int turn{master->get_analog(ANALOG_RIGHT_X)};
-		drive->driver(forward, strafe, turn);
-
-		catapult.move_voltage((catapultStateMachine.getState() == CatapultState::Ready) ? 0 : 12000);
-		catapultStateMachine.transition();
-
-		pros::delay(10);
-	}
-}*/
 
 /* -------------------------------------------------------------------------- */
 /*                                   Helpers                                  */

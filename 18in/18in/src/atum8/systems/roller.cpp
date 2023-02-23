@@ -16,7 +16,7 @@ namespace atum8
         {
             if (turningToColor)
             {
-                runRoller();
+                runRoller(50);
                 waitFor([this]()
                         {
                     auto rgb = optical->get_rgb();

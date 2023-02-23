@@ -43,6 +43,10 @@ namespace atum8
         shooting = true;
     }
 
+    bool Intake::isShooting() const {
+        return shooting;
+    }
+
     int Intake::getNumberOfDisks() const
     {
         if (lowLineTracker->get_value() < lineTrackerThreshold)
