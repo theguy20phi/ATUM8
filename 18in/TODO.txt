@@ -1,0 +1,7 @@
+Merge intake and flywheel classes
+Clean up drive class
+Add strafe method to drive class
+Add option for multiple IMUs
+Add endgame
+Create auton routine and skills routine plan
+Program auton routine and skills routine
