@@ -47,6 +47,10 @@ atum8::SPRoller roller;
 atum8::UPADIDigitalOut endGame;
 
 void initializeLCD();
+void skills();
+void match();
+void special();
+void turnRoller();
 
 /**
  * Prototypes for the competition control tasks are redefined here to ensure

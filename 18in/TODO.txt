@@ -1,6 +1,4 @@
-Add option for multiple IMUs
-Create auton routine and skills routine plan
-Program auton routine and skills routine
+Program skills routine
 Tune flywheel for short and long distances
 Tune drive for short and long turns
 Tune drive for short and long distances

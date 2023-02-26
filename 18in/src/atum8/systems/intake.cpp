@@ -34,6 +34,11 @@ namespace atum8
         motor->move(speed);
     }
 
+    void Intake::stopIntake()
+    {
+        motor->move(0);
+    }
+
     void Intake::shoot(int iShooting, bool iFlywheelBlocks)
     {
 
@@ -46,8 +51,9 @@ namespace atum8
         return shooting;
     }
 
-    bool Intake::shouldShoot() {
-        if(flywheelBlocks)
+    bool Intake::shouldShoot()
+    {
+        if (flywheelBlocks)
             return flywheel->readyToFire() && shooting;
         return shooting;
     }

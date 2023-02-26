@@ -18,6 +18,8 @@ namespace atum8
 
         void runIntake(int speed = 127);
 
+        void stopIntake();
+
         void shoot(int iShooting = 1, bool iFlywheelBlocks = true);
 
         bool isShooting() const;

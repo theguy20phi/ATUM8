@@ -77,24 +77,20 @@ void disabled()
 
 void autonomous()
 {
-	flywheel->setReferenceSpeed(lowSpeed);
-	drive->forward(-5_ft, 3_s, 15);
-	roller->runForAt(320, 127);
-	drive->forward(-5_ft, 3_s, 0);
-	drive->forward(1.5_ft, 3_s);
-	drive->turn(90_deg, 3_s);
-	intake->runIntake();
-	drive->forward(-1.1_tile, 3_s);
-	intake->runIntake(0);
-	drive->forward(-5_ft, 3_s, 15);
-	roller->runForAt(320, 127);
-	drive->forward(-5_ft, 3_s, 0);
-	drive->forward(1_ft, 3_s);
-	drive->turn(-90_deg, 3_s);
-	drive->forward(2_tile, 6_s);
-	drive->turn(-2_deg, 3_s);
-	intake->shoot(3);
-	drive->forward(-0.5_tile, 3_s);
+	switch (autonSelector->getMatchInfo().routine)
+	{
+	case atum8::Routine::Skills:
+		skills();
+		break;
+	case atum8::Routine::Match:
+		match();
+		break;
+	case atum8::Routine::Special:
+		special();
+		break;
+	default:
+		break;
+	}
 }
 
 void opcontrol()
@@ -201,4 +197,103 @@ void initializeLCD()
 								{ gui->control(0); });
 	pros::lcd::register_btn2_cb([]()
 								{ gui->control(1); });
+}
+
+void skills()
+{
+	const okapi::QLength offsetDistance{4_in};
+	flywheel->setReferenceSpeed(lowSpeed);
+	turnRoller();
+	drive->forward(offsetDistance, 0.5_s);
+	drive->turn(170_deg, 1_s);
+	intake->runIntake();
+	drive->forward(-1_tile, 1_s);
+	drive->turn(-80_deg, 0.5_s);
+	drive->forward(-0.5_tile, 0.5_s);
+	intake->stopIntake();
+	turnRoller();
+	drive->forward(0.5_tile, 0.5_s);
+	drive->turn(-90_deg, 1_s);
+	drive->forward(2_tile, 2_s);
+	drive->turn(-2_deg, 0.25_s);
+	intake->shoot(3);
+	drive->turn(2_deg, 0.25_s);
+	drive->forward(-1.25_tile, 1.5_s);
+	drive->turn(-45_deg, 0.5_s);
+	intake->runIntake();
+	drive->forward(-2.12_tile, 5_s, 40);
+	drive->turn(-135_deg, 1.5_s);
+	intake->stopIntake();
+	drive->forward(3_tile, 1_s);
+	drive->forward(-1 * offsetDistance, 0.5_s);
+	drive->turn(-90_deg, 1_s);
+	drive->forward(1_tile, 1_s);
+	intake->shoot(3);
+	drive->forward(-1_tile, 1_s);
+	drive->turn(90_deg, 1_s);
+	drive->forward(3_tile, 1_s);
+	drive->forward(-0.25_tile - offsetDistance, 0.5_s);
+	intake->runIntake();
+	drive->forward(-0.75_tile, 5_s, 40);
+	drive->forward(3_tile, 1_s);
+	intake->stopIntake();
+	drive->forward(-1 * offsetDistance, 0.5_s);
+	drive->turn(-90_deg, 1_s);
+	drive->forward(1_tile, 1_s);
+	intake->shoot(3);
+	drive->forward(-0.5_tile, 0.5_s);
+	drive->turn(-90_deg, 1_s);
+	drive->forward(3_tile, 1_s);
+	drive->forward(-1.5_tile - offsetDistance, 2_s);
+	drive->turn(45_deg, 0.5_s);
+	intake->runIntake();
+	drive->forward(-2.12_tile, 2_s);
+	drive->turn(-90_deg, 1_s);
+	intake->stopIntake();
+	drive->forward(1.41_tile, 2_s);
+	drive->turn(45_deg, 0.5_s);
+	intake->shoot(3);
+	drive->forward(-0.5_tile, 0.5_s);
+	drive->turn(-90_deg, 1_s);
+	drive->forward(3_tile, 1_s);
+	drive->forward(-1 * offsetDistance, 0.5_s);
+	drive->turn(180_deg, 2_s);
+	drive->forward(4.5_tile, 5_s);
+	drive->turn(90_deg, 1_s);
+	drive->forward(-2_tile, 2_s);
+	drive->turn(45_deg, 0.5_s);
+	endGame->set_value(1);
+}
+
+void match()
+{
+}
+
+void special()
+{
+	flywheel->setReferenceSpeed(lowSpeed);
+	drive->forward(-5_ft, 3_s, 15);
+	roller->runForAt(320, 127);
+	drive->forward(-5_ft, 3_s, 0);
+	drive->forward(1.5_ft, 3_s);
+	drive->turn(90_deg, 3_s);
+	intake->runIntake();
+	drive->forward(-1.1_tile, 3_s);
+	intake->runIntake(0);
+	drive->forward(-5_ft, 3_s, 15);
+	roller->runForAt(320, 127);
+	drive->forward(-5_ft, 3_s, 0);
+	drive->forward(1_ft, 3_s);
+	drive->turn(-90_deg, 3_s);
+	drive->forward(2_tile, 6_s);
+	drive->turn(-2_deg, 3_s);
+	intake->shoot(3);
+	drive->forward(-0.5_tile, 3_s);
+}
+
+void turnRoller()
+{
+	drive->forward(-20_ft, 0.5_s, 15);
+	roller->turnToColor();
+	drive->forward(-20_ft, 1.5_s, 15);
 }
