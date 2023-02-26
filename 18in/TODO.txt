@@ -1,4 +1,5 @@
-Program skills routine
+Remeasure drive dimensions
 Tune flywheel for short and long distances
 Tune drive for short and long turns
 Tune drive for short and long distances
+Fix programming skills
