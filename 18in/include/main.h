@@ -44,6 +44,7 @@ atum8::SPMecanum drive;
 atum8::SPFlywheel flywheel;
 atum8::SPIntake intake;
 atum8::SPRoller roller;
+atum8::UPADIDigitalOut endGame;
 
 void initializeLCD();
 

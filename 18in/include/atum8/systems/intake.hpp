@@ -2,6 +2,7 @@
 
 #include "atum8/constants.hpp"
 #include "atum8/task.hpp"
+#include "flywheel.hpp"
 
 namespace atum8
 {
@@ -10,33 +11,25 @@ namespace atum8
     public:
         Intake(UPMotor iMotor,
                UPADIDigitalOut iPiston,
-               UPADIAnalogIn iLowLineTracker,
-               UPADIAnalogIn iMiddleLineTracker,
-               UPADIAnalogIn iHighLineTracker,
-               int iLineTrackerThreshold);
+               const SPFlywheel &iFlywheel,
+               int iShotDelay = 500);
 
         void taskFn();
 
         void runIntake(int speed = 127);
 
-        void shoot();
+        void shoot(int iShooting = 1, bool iFlywheelBlocks = true);
 
         bool isShooting() const;
 
-        int getNumberOfDisks() const;
-
-        void setLineTrackerThreshold(int iLineTrackerThreshold);
-
-        int getLineTrackerThreshold() const;
-
     private:
+        bool shouldShoot();
         UPMotor motor;
         UPADIDigitalOut piston;
-        UPADIAnalogIn lowLineTracker;
-        UPADIAnalogIn middleLineTracker;
-        UPADIAnalogIn highLineTracker;
-        int lineTrackerThreshold;
-        bool shooting{false};
+        SPFlywheel flywheel;
+        const int shotDelay;
+        int shooting{0};
+        bool flywheelBlocks{true};
     };
 
     using UPIntake = std::unique_ptr<Intake>;
@@ -52,17 +45,15 @@ namespace atum8
 
         SPIntakeBuilder withPiston(int iPort);
 
-        SPIntakeBuilder withLineTrackers(int iLowPort, int iMiddlePort, int iHighPort);
+        SPIntakeBuilder withFlywheel(const SPFlywheel &iFlywheel);
 
-        SPIntakeBuilder withLineTrackerThreshold(int iLineTrackerThreshold);
+        SPIntakeBuilder withShotDelay(int iShotDelay = 500);
 
     private:
         int motorPort;
         pros::motor_gearset_e_t gearset;
         int pistonPort;
-        int lowPort;
-        int middlePort;
-        int highPort;
-        int lineTrackerThreshold;
+        SPFlywheel flywheel;
+        int shotDelay;
     };
 }

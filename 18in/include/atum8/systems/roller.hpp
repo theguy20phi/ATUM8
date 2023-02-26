@@ -14,6 +14,8 @@ namespace atum8
 
         void runRoller(int speed = 127);
 
+        void stopRoller();
+
         void runForAt(double position, int speed = 50);
 
         void turnToColor();

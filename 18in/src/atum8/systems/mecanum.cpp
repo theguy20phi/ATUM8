@@ -20,7 +20,6 @@ namespace atum8
                      SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> iTurnSettledChecker,
                      SPSlewRate iForwardSlewRate,
                      SPSlewRate iTurnSlewRate,
-                     const pros::motor_brake_mode_e &brakeMode,
                      UPImu iImu,
                      double iImuTrust) : rFMotor{std::move(iRFMotor)},
                                          lFMotor{std::move(iLFMotor)},
@@ -37,74 +36,53 @@ namespace atum8
                                          imu{std::move(iImu)},
                                          imuTrust{std::abs(iImuTrust)}
     {
-        setBrakeMode(brakeMode);
     }
 
     void Mecanum::driver(int forward, int strafe, int turn)
     {
+        setBrakeMode(driverSettings->brakeMode);
         forward = (abs(forward) < driverSettings->deadZone) ? 0 : forward;
         strafe = (abs(strafe) < driverSettings->deadZone) ? 0 : strafe;
         turn = (abs(turn) < driverSettings->deadZone) ? 0 : turn;
         forward = driverSettings->stickFunction(forward);
         strafe = driverSettings->stickFunction(strafe);
         turn = driverSettings->stickFunction(turn);
-        forward = std::clamp(forward, -driverSettings->maxPower, driverSettings->maxPower);
-        strafe = std::clamp(strafe, -driverSettings->maxPower, driverSettings->maxPower);
-        turn = std::clamp(turn, -driverSettings->maxPower, driverSettings->maxPower);
         forward = driverSettings->forwardSlewRate ? driverSettings->forwardSlewRate->slew(forward) : forward;
         strafe = driverSettings->strafeSlewRate ? driverSettings->strafeSlewRate->slew(strafe) : strafe;
         turn = driverSettings->turnSlewRate ? driverSettings->turnSlewRate->slew(turn) : turn;
+        forward *= driverSettings->maxPower;
+        strafe *= driverSettings->maxPower;
+        turn *= driverSettings->maxPower;
         move(forward, strafe, turn);
     }
 
     void Mecanum::forward(const okapi::QLength &distance, const okapi::QTime &maxTime, int maxForward)
     {
-        tare();
-        setBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
-        okapi::QLength distanceError{distance - getDistance()};
-        okapi::QAngle angleError{okapi::OdomMath::constrainAngle180(-getAngle())};
-        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
-        while (!isSettled(distanceError, angleError) &&
-               isTimeNotExpired(startTime, maxTime))
-        {
-            distanceError = distance - getDistance();   
-            angleError = -getAngle();
-            move(useForwardController(distanceError, maxForward),
-                 0,
-                 useTurnController(angleError));
-            pros::delay(atum8::stdDelay);
-        }
-        move(); // Stop the drive
+        toReference([this, distance]()
+                    { return distance - getDistance(); },
+                    [this]()
+                    { return okapi::OdomMath::constrainAngle180(-getAngle()); }, // Deviation from initial angle 
+                    maxTime,
+                    maxForward);
     }
 
     void Mecanum::turn(const okapi::QAngle &angle, const okapi::QTime &maxTime, int maxTurn)
     {
-        tare();
-        setBrakeMode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
-        okapi::QAngle angleError{okapi::OdomMath::constrainAngle180(angle - getAngle())};
-        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
-        std::cout << turnSettledChecker->isSettled(angleError) << std::endl;
-        while (!turnSettledChecker->isSettled(angleError) &&
-               isTimeNotExpired(startTime, maxTime))
-        {
-            angleError = okapi::OdomMath::constrainAngle180(angle - getAngle());
-            move(0, 0, useTurnController(angleError, maxTurn));
-            pros::delay(atum8::stdDelay);
-        }
-        move(); // Stop the drive
+        toReference([this]()
+                    { return 0_m; }, // Shouldn't use forward controller
+                    [this, angle]()
+                    { return okapi::OdomMath::constrainAngle180(angle - getAngle()); },
+                    maxTime,
+                    0,
+                    maxTurn);
     }
 
     void Mecanum::move(int forward, int strafe, int turn)
     {
-        if (forward || strafe || turn)
-        {
-            rFMotor->move(forward - strafe - turn);
-            lFMotor->move(forward + strafe + turn);
-            lBMotor->move(forward - strafe + turn);
-            rBMotor->move(forward + strafe - turn);
-        }
-        else
-            applyBrakes();
+        rFMotor->move(forward - strafe - turn);
+        lFMotor->move(forward + strafe + turn);
+        lBMotor->move(forward - strafe + turn);
+        rBMotor->move(forward + strafe - turn);
     }
 
     okapi::QLength Mecanum::getDistance() const
@@ -164,57 +142,33 @@ namespace atum8
         rBMotor->set_brake_mode(brakeMode);
     }
 
-    Mecanum::SPDimensions Mecanum::getDimensions() const
-    {
-        return dimensions;
-    }
-
     Mecanum::SPDriverSettings Mecanum::getDriverSettings() const
     {
         return driverSettings;
     }
 
-    SPController Mecanum::getForwardController() const
-    {
-        return forwardController;
-    }
-
-    SPController Mecanum::getTurnController() const
-    {
-        return turnController;
-    }
-
-    SPSettledChecker<okapi::QLength, okapi::QSpeed> Mecanum::getForwardSettledChecker() const
-    {
-        return forwardSettledChecker;
-    }
-
-    SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> Mecanum::getTurnSettledChecker() const
-    {
-        return turnSettledChecker;
-    }
-
-    SPSlewRate Mecanum::getForwardSlewRate() const
-    {
-        return forwardSlewRate;
-    }
-
-    SPSlewRate Mecanum::getTurnSlewRate() const
-    {
-        return turnSlewRate;
-    }
-
-    void Mecanum::applyBrakes()
-    {
-        rFMotor->move_velocity(0);
-        lFMotor->move_velocity(0);
-        lBMotor->move_velocity(0);
-        rBMotor->move_velocity(0);
-    }
-
     bool Mecanum::isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
     {
         return (pros::millis() * okapi::millisecond - startTime) <= maxTime || maxTime == 0_s;
+    }
+
+    void Mecanum::toReference(const std::function<okapi::QLength()> &distanceError,
+                              const std::function<okapi::QAngle()> &angleError,
+                              const okapi::QTime &maxTime,
+                              int maxForward,
+                              int maxTurn)
+    {
+        tare();
+        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
+        while (!isSettled(distanceError(), angleError()) &&
+               isTimeNotExpired(startTime, maxTime))
+        {
+            move(useForwardController(distanceError(), maxForward),
+                 0,
+                 useTurnController(angleError(), maxTurn));
+            pros::delay(atum8::stdDelay);
+        }
+        move(); // Stop the drive
     }
 
     int Mecanum::useForwardController(const okapi::QLength &distanceError, int maxForward)
@@ -225,7 +179,7 @@ namespace atum8
     }
 
     int Mecanum::useTurnController(const okapi::QAngle &angleError, int maxTurn)
-    {;
+    {
         double turnOutput{turnController->getOutput(angleError.convert(okapi::degree))};
         turnOutput = turnSlewRate ? turnSlewRate->slew(turnOutput) : turnOutput;
         return std::clamp((int)turnOutput, -maxTurn, maxTurn);
@@ -246,7 +200,6 @@ namespace atum8
                                          forwardController, turnController,
                                          forwardSettledChecker, turnSettledChecker,
                                          forwardSlewRate, turnSlewRate,
-                                         brakeMode,
                                          std::make_unique<pros::Imu>(imuPort), imuTrust);
     }
 
@@ -362,7 +315,7 @@ namespace atum8
 
     SPMecanumBuilder SPMecanumBuilder::withBrakeMode(const pros::motor_brake_mode_e &iBrakeMode)
     {
-        brakeMode = iBrakeMode;
+        driverSettings->brakeMode = iBrakeMode;
         return *this;
     }
 

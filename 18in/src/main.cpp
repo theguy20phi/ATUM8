@@ -1,10 +1,6 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
-atum8::SPPidFF forwardPidFF;
-atum8::SPPidFF turnPidFF;
-atum8::SPPidFF flywheelVelController;
-atum8::SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> flywheelSettledChecker;
 constexpr okapi::QAngularSpeed lowSpeed{2100_rpm};
 constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
 
@@ -21,8 +17,8 @@ void initialize()
 		{ return "ANUBIS"; }});
 	gui = autonSelector;
 
-	forwardPidFF = std::make_shared<atum8::PidFF>(6.0, 0.2);
-	turnPidFF = std::make_shared<atum8::PidFF>(3.0, 0.1);
+	auto forwardPidFF = std::make_shared<atum8::PidFF>(6.0, 0.2);
+	auto turnPidFF = std::make_shared<atum8::PidFF>(3.0, 0.1);
 	drive = atum8::SPMecanumBuilder()
 				.withRFMotor(-10)
 				.withLFMotor(20)
@@ -41,11 +37,20 @@ void initialize()
 				.build();
 	drive->reset();
 
+	auto flywheelVelController = std::make_shared<atum8::PidFF>(0.01, 0, 0, 4.23);
+	auto flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(150_rpm, 0_rpmps, 0_s);
+	flywheel = atum8::SPFlywheelBuilder()
+				   .withMotors({16, -17})
+				   .withController(flywheelVelController)
+				   .withSettledChecker(flywheelSettledChecker)
+				   .withSpeedMultiplier(15.0)
+				   .build();
+	flywheel->start();
+
 	intake = atum8::SPIntakeBuilder()
 				 .withMotor(13)
-				 .withPiston('D')
-				 .withLineTrackers('C', 'B', 'A')
-				 .withLineTrackerThreshold(1500)
+				 .withPiston('A')
+				 .withFlywheel(flywheel)
 				 .build();
 	intake->start();
 
@@ -56,15 +61,7 @@ void initialize()
 				 .build();
 	roller->start();
 
-	flywheelVelController = std::make_shared<atum8::PidFF>(0.01, 0, 0, 4.23);
-	flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(150_rpm, 0_rpmps, 0_s);
-	flywheel = atum8::SPFlywheelBuilder()
-				   .withMotors({16, -17})
-				   .withController(flywheelVelController)
-				   .withSettledChecker(flywheelSettledChecker)
-				   .withSpeedMultiplier(15.0)
-				   .build();
-	flywheel->start();
+	endGame = std::make_unique<pros::ADIDigitalOut>('B');
 }
 
 void disabled()
@@ -96,13 +93,7 @@ void autonomous()
 	drive->turn(-90_deg, 3_s);
 	drive->forward(2_tile, 6_s);
 	drive->turn(-2_deg, 3_s);
-	for (int i = 0; i < 3; i++)
-	{
-		while (!flywheel->readyToFire())
-			pros::delay(500);
-		intake->shoot();
-		pros::delay(500);
-	}
+	intake->shoot(3);
 	drive->forward(-0.5_tile, 3_s);
 }
 
@@ -123,6 +114,16 @@ void opcontrol()
 		const int turn{master.get_analog(ANALOG_RIGHT_X)};
 		drive->driver(forward, strafe, turn);
 
+		if (master.get_digital_new_press(DIGITAL_B))
+		{
+			if (drive->getDriverSettings()->brakeMode == pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST)
+				drive->getDriverSettings()->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD;
+			else
+				drive->getDriverSettings()->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST;
+		}
+
+		if (master.get_digital_new_press(DIGITAL_A))
+			drive->getDriverSettings()->maxPower = drive->getDriverSettings()->maxPower == 1.0 ? 0.5 : 1.0;
 
 		// Intake Controls
 		if (master.get_digital(DIGITAL_L1))
@@ -132,29 +133,27 @@ void opcontrol()
 		else
 			intake->runIntake(0);
 
-
 		// Roller Controls
 		if (manualRoller)
 		{
 			if (master.get_digital(DIGITAL_R1))
 				roller->runRoller();
 			else
-				roller->runRoller(0);
+				roller->stopRoller();
 		}
 		else
 			roller->turnToColor();
 
-		if(master.get_digital_new_press(DIGITAL_X))
+		if (master.get_digital_new_press(DIGITAL_X))
 			manualRoller = !manualRoller;
-
 
 		// Shooter Controls
 		if (master.get_digital_new_press(DIGITAL_R2))
-			intake->shoot();
+			intake->shoot(1, false);
 
 		if (intake->isShooting())
 			readyNotified = false;
-		else if (flywheelSettledChecker->isSettled() && !readyNotified)
+		else if (flywheel->readyToFire() && !readyNotified)
 		{
 			master.rumble("..");
 			readyNotified = true;
@@ -175,6 +174,13 @@ void opcontrol()
 				break;
 			}
 		}
+
+		// End Game Controls
+		if (master.get_digital(DIGITAL_UP) &&
+			master.get_digital(DIGITAL_DOWN) &&
+			master.get_digital(DIGITAL_LEFT) &&
+			master.get_digital(DIGITAL_RIGHT))
+			endGame->set_value(1);
 
 		pros::delay(atum8::stdDelay);
 	}

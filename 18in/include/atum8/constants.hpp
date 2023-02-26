@@ -34,21 +34,17 @@ namespace atum8
      */
     enum Routine
     {
-        Left,
-        Right,
-        Center,
-        Special,
-        Skills
+        Match,
+        Skills,
+        Special
     };
 
-    static constexpr std::array routineNames{"Left", "Right", "Center", "Special", "Skills"};
+    static constexpr std::array routineNames{"Match", "Skills", "Special"};
 
     static constexpr std::array routineDescs{
-        "Left side autonomous routine.\nYou should put more info here!\nAnd here as well.",
-        "Right side autonomous routine.\nLike where should it go?\nWhat does it do?",
-        "Center autonomous routine.\nThis took a lot of time...\nMAKE USE OF IT!",
-        "Special autonomous routine.\nSpecial times call for...\nspecial...\nmeasures...",
-        "Skills autonomous.\nYou get the drill by now...\nPut more info here!"};
+        "Normal match routine.",
+        "Programming skills routine.",
+        "Special autonomous routine.\nLikely used for testing."};
 
     /* -------------------------------------------------------------------------- */
     /*                             Unlikely to Change                             */

@@ -27,7 +27,8 @@ namespace atum8
             SPSlewRate turnSlewRate{nullptr};
             std::function<int(int)> stickFunction = {[](int input)
                                                      { return input; }};
-            int maxPower{127};
+            pros::motor_brake_mode_e brakeMode{pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST};
+            double maxPower{1.0};
         };
 
         using UPDriverSettings = std::unique_ptr<DriverSettings>;
@@ -54,7 +55,6 @@ namespace atum8
                 SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> iTurnSettledChecker,
                 SPSlewRate iForwardSlewRate,
                 SPSlewRate iTurnSlewRate,
-                const pros::motor_brake_mode_e &brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST,
                 UPImu iImu = nullptr,
                 double iImuTrust = 0.5);
 
@@ -78,25 +78,15 @@ namespace atum8
 
         void setBrakeMode(const pros::motor_brake_mode_e &brakeMode);
 
-        SPDimensions getDimensions() const;
-
         SPDriverSettings getDriverSettings() const;
 
-        SPController getForwardController() const;
-
-        SPController getTurnController() const;
-
-        SPSettledChecker<okapi::QLength, okapi::QSpeed> getForwardSettledChecker() const;
-
-        SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> getTurnSettledChecker() const;
-
-        SPSlewRate getForwardSlewRate() const;
-        
-        SPSlewRate getTurnSlewRate() const;
-
     private:
-        void applyBrakes();
         bool isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
+        void toReference(const std::function<okapi::QLength()> &distanceError,
+                         const std::function<okapi::QAngle()> &angleError,
+                         const okapi::QTime &maxTime,
+                         int maxForward = 127,
+                         int maxTurn = 127);
         int useForwardController(const okapi::QLength &distanceError, int maxForward = 127);
         int useTurnController(const okapi::QAngle &angleError, int maxTurn = 127);
         UPMotor rFMotor;
@@ -169,6 +159,5 @@ namespace atum8
         SPSlewRate turnSlewRate;
         int imuPort;
         double imuTrust{0.5};
-        pros::motor_brake_mode_e brakeMode{pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST};
     };
 }

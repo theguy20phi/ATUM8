@@ -6,36 +6,33 @@ namespace atum8
 
     PidFF::PidFF(const PidFF::Parameters &iParams) : params{iParams} {}
 
-    // Quite a bit of duplication here, should later be fixed
     double PidFF::getOutput(double state, double reference)
     {
         if (!sampleTimePassed())
             return output;
-        const double error{reference - state};
-        const double P{params.kP * error};
-        updateI(error);
-        const double errorDiff{error - prevError};
-        prevError = error;
-        // Prevents derivative kick when reference changes
-        const double D{(abs(errorDiff) > 1 / params.kD) ? 0 : params.kD * errorDiff};
-        const double FF{params.FF * reference};
-        output = P + I + D + FF;
+        // Prevents derivative kick by using state diff rather than error diff
+        const double D{params.kD * (state - prevState)};
+        prevState = state;
+        const double PIFF{getPIFF(reference - state, reference)};
+        output = PIFF + D;
         return output;
     }
 
-    // Quite a bit of duplication here, should later be fixed
     double PidFF::getOutput(double error)
     {
         if (!sampleTimePassed())
             return output;
+        const double D{params.kD * (error - prevError)};
+        const double PIFF{getPIFF(error)};
+        output = PIFF + D;
+        return output;
+    }
+
+    double PidFF::getPIFF(double error, double reference)
+    {
         const double P{params.kP * error};
         updateI(error);
-        const double errorDiff{error - prevError};
-        prevError = error;
-        // Prevents derivative kick when reference changes
-        const double D{(abs(errorDiff) > 1 / params.kD) ? 0 : params.kD * errorDiff};
-        output = P + I + D + params.FF;
-        return output;
+        return P + I + params.FF * reference;
     }
 
     void PidFF::updateI(double error)
@@ -44,8 +41,9 @@ namespace atum8
         // If we have crossed over the reference, I should be 0
         if (std::signbit(error) != std::signbit(prevError))
             I = 0;
-        // Generally decent clamping for I value
-        I = std::clamp(I, -1 / params.kI, 1 / params.kI);
+        prevError = error;
+        // Slowly forget earlier values
+        I *= IDecay;
     }
 
     void PidFF::setKP(double kP)
