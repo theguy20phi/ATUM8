@@ -20,7 +20,7 @@ namespace atum8
                      SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> iTurnSettledChecker,
                      SPSlewRate iForwardSlewRate,
                      SPSlewRate iTurnSlewRate,
-                     UPImu iImu,
+                     UPImus iImus,
                      double iImuTrust) : rFMotor{std::move(iRFMotor)},
                                          lFMotor{std::move(iLFMotor)},
                                          lBMotor{std::move(iLBMotor)},
@@ -33,7 +33,7 @@ namespace atum8
                                          turnSettledChecker{iTurnSettledChecker},
                                          forwardSlewRate{iForwardSlewRate},
                                          turnSlewRate{iTurnSlewRate},
-                                         imu{std::move(iImu)},
+                                         imus{std::move(iImus)},
                                          imuTrust{std::abs(iImuTrust)}
     {
     }
@@ -61,7 +61,7 @@ namespace atum8
         toReference([this, distance]()
                     { return distance - getDistance(); },
                     [this]()
-                    { return okapi::OdomMath::constrainAngle180(-getAngle()); }, // Deviation from initial angle 
+                    { return okapi::OdomMath::constrainAngle180(-getAngle()); }, // Deviation from initial angle
                     maxTime,
                     maxForward);
     }
@@ -102,8 +102,8 @@ namespace atum8
         const double rAvgRotation{(rFMotor->get_position() + rBMotor->get_position()) / 2000};
         const okapi::QLength diff{(lAvgRotation - rAvgRotation) * dimensions->wheelCircum};
         const okapi::QAngle driveAngle{(diff / dimensions->baseWidth) * okapi::radian};
-        if (imu)
-            return imu->get_rotation() * imuTrust * okapi::degree + driveAngle * (1 - imuTrust);
+        if (imus)
+            return imus->get_rotation() * imuTrust * okapi::degree + driveAngle * (1 - imuTrust);
         return driveAngle;
     }
 
@@ -118,8 +118,8 @@ namespace atum8
         move();
         tare();
         // This will calibrate the IMU and block!
-        if (imu)
-            imu->reset(true);
+        if (imus)
+            imus->reset();
     }
 
     void Mecanum::tare()
@@ -128,7 +128,7 @@ namespace atum8
         lFMotor->tare_position();
         lBMotor->tare_position();
         rBMotor->tare_position();
-        imu->tare_rotation();
+        imus->tare_rotation();
         forwardController->reset();
         turnController->reset();
         forwardSlewRate->reset();
@@ -200,7 +200,7 @@ namespace atum8
                                          forwardController, turnController,
                                          forwardSettledChecker, turnSettledChecker,
                                          forwardSlewRate, turnSlewRate,
-                                         std::make_unique<pros::Imu>(imuPort), imuTrust);
+                                         std::make_unique<Imus>(imuPorts), imuTrust);
     }
 
     SPMecanumBuilder SPMecanumBuilder::withRFMotor(int port,
@@ -319,9 +319,9 @@ namespace atum8
         return *this;
     }
 
-    SPMecanumBuilder SPMecanumBuilder::withImu(int port, double trust)
+    SPMecanumBuilder SPMecanumBuilder::withImus(const std::vector<int> &ports, double trust)
     {
-        imuPort = port;
+        imuPorts = ports;
         imuTrust = trust;
         return *this;
     }

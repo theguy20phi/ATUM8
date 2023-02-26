@@ -8,6 +8,7 @@
 #include "atum8/controllers/controller.hpp"
 #include "atum8/settledChecker.hpp"
 #include "atum8/slewRate.hpp"
+#include "atum8/imus.hpp"
 
 #include <iostream>
 
@@ -55,7 +56,7 @@ namespace atum8
                 SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> iTurnSettledChecker,
                 SPSlewRate iForwardSlewRate,
                 SPSlewRate iTurnSlewRate,
-                UPImu iImu = nullptr,
+                UPImus iImus = nullptr,
                 double iImuTrust = 0.5);
 
         void driver(int forward = 0, int strafe = 0, int turn = 0);
@@ -101,7 +102,7 @@ namespace atum8
         SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> turnSettledChecker;
         SPSlewRate forwardSlewRate;
         SPSlewRate turnSlewRate;
-        UPImu imu;
+        UPImus imus;
         double imuTrust{0.5};
     };
 
@@ -137,7 +138,7 @@ namespace atum8
                                                 const okapi::QTime &time);
         SPMecanumBuilder withForwardSlew(double slewRate);
         SPMecanumBuilder withTurnSlew(double slewRate);
-        SPMecanumBuilder withImu(int port, double trust = 0.5);
+        SPMecanumBuilder withImus(const std::vector<int> &ports, double trust = 0.5);
         SPMecanumBuilder withBrakeMode(const pros::motor_brake_mode_e &brakeMode);
 
     private:
@@ -157,7 +158,7 @@ namespace atum8
         SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> turnSettledChecker;
         SPSlewRate forwardSlewRate;
         SPSlewRate turnSlewRate;
-        int imuPort;
+        std::vector<int> imuPorts;
         double imuTrust{0.5};
     };
 }
