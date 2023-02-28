@@ -22,8 +22,6 @@ namespace atum8
             double output{velocityController->getOutput(speed.convert(okapi::rpm), referenceSpeed.convert(okapi::rpm))};
             if (referenceSpeed == 0_rpm || output <= 0)
                 output = 0;
-            // REMOVE!
-            std::cout << speed.convert(okapi::rpm) << " " << output << std::endl;
             motorGroup->move_voltage(output);
             pros::delay(stdDelay);
         }

@@ -98,9 +98,9 @@ namespace atum8
 
     okapi::QAngle Mecanum::getAngle() const
     {
-        const double lAvgRotation{(lFMotor->get_position() + lBMotor->get_position()) / 2000};
-        const double rAvgRotation{(rFMotor->get_position() + rBMotor->get_position()) / 2000};
-        const okapi::QLength diff{(lAvgRotation - rAvgRotation) * dimensions->wheelCircum};
+        const double lAvgRotation{(lFMotor->get_position() + lBMotor->get_position()) / 2};
+        const double rAvgRotation{(rFMotor->get_position() + rBMotor->get_position()) / 2};
+        const okapi::QLength diff{(lAvgRotation - rAvgRotation) / 360 * dimensions->wheelCircum};
         const okapi::QAngle driveAngle{(diff / dimensions->baseWidth) * okapi::radian};
         if (imus)
             return imus->get_rotation() * imuTrust * okapi::degree + driveAngle * (1 - imuTrust);

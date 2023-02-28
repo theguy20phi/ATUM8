@@ -8,6 +8,7 @@ namespace atum8
                                           optical{std::move(iOptical)},
                                           color{iColor}
     {
+        optical->set_led_pwm(100);
         motor->set_brake_mode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_BRAKE);
     }
 
@@ -17,14 +18,22 @@ namespace atum8
         {
             if (turningToColor)
             {
-                runRoller(50);
+                runRoller(80);
+                waitFor([this]()
+                        {
+                    auto rgb = optical->get_rgb();
+                    if(color == Color::Red)
+                        return rgb.red < rgb.blue;
+                    return rgb.red > rgb.blue; },
+                        0.75_s);
+                runRoller(-40);
                 waitFor([this]()
                         {
                     auto rgb = optical->get_rgb();
                     if(color == Color::Red)
                         return rgb.red > rgb.blue;
                     return rgb.red < rgb.blue; },
-                        1_s);
+                        0.75_s);
                 turningToColor = false;
                 stopRoller();
             }
