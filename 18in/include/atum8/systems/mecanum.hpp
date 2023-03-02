@@ -131,8 +131,8 @@ namespace atum8
         SPMecanumBuilder withForwardController(SPController iForwardController);
         SPMecanumBuilder withTurnController(SPController iTurnController);
         SPMecanumBuilder withForwardSettledChecker(const okapi::QLength &distance,
-                                                   const okapi::QSpeed &speed,
-                                                   const okapi::QTime &time);
+                                                   const okapi::QSpeed &speed = 0_inps,
+                                                   const okapi::QTime &time = 0_s);
         SPMecanumBuilder withTurnSettledChecker(const okapi::QAngle &angle,
                                                 const okapi::QAngularSpeed &angularSpeed,
                                                 const okapi::QTime &time);

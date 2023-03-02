@@ -2,30 +2,26 @@
 
 namespace atum8
 {
-    SlewRate::SlewRate(double iMaxChange) : maxChange{iMaxChange}
+    SlewRate::SlewRate(double maxChange) : maxNegChange{-maxChange},
+                                           maxPosChange{maxChange}
+    {
+    }
+
+    SlewRate::SlewRate(double iMaxNegChange, double iMaxPosChange) : maxNegChange{iMaxNegChange},
+                                                                     maxPosChange{iMaxPosChange}
     {
     }
 
     double SlewRate::slew(double reference)
     {
         const double difference{reference - output};
-        output += std::clamp(difference, -maxChange, maxChange);
+        output += std::clamp(difference, maxNegChange, maxPosChange);
         return output;
     }
 
     double SlewRate::getOutput() const
     {
         return output;
-    }
-
-    void SlewRate::setMaxChange(double iMaxChange)
-    {
-        maxChange = iMaxChange;
-    }
-
-    double SlewRate::getMaxChange() const
-    {
-        return maxChange;
     }
 
     void SlewRate::reset()

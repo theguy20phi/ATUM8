@@ -1,8 +1,8 @@
 #include "main.h"
 #include "okapi/api/units/QLength.hpp"
 
-constexpr okapi::QAngularSpeed lowSpeed{2400_rpm};
-constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
+constexpr okapi::QAngularSpeed lowSpeed{2450_rpm};
+constexpr okapi::QAngularSpeed highSpeed{2900_rpm};
 
 void initialize()
 {
@@ -14,22 +14,26 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "ANUBIS"; }});
+		{ return "ANUBIS"; },
+		[](int control)
+		{
+			return std::to_string(flywheel->getSpeed().convert(okapi::rpm));
+		}});
 	gui = autonSelector;
 
-	auto forwardPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(24, 0.01),
+	auto forwardPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(28, 0.01),
 														std::make_unique<atum8::PidFF>(7.5, 0.001),
 														4,
 														0.9);
-	auto turnPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(10.25, 0.01),
+	auto turnPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(9, 0.01),
 													 std::make_unique<atum8::PidFF>(3, 0.0015),
 													 5,
 													 0.9);
 	drive = atum8::SPMecanumBuilder()
 				.withRFMotor(-11)
 				.withLFMotor(1)
-				.withLBMotor(10)
-				.withRBMotor(-20)
+				.withLBMotor(-10)
+				.withRBMotor(20)
 				.withImus({14, 15, 18}, 1)
 				.withBaseWidth(14.625_in)
 				.withWheelCircum(5.4_in)
@@ -45,13 +49,14 @@ void initialize()
 	drive->reset();
 	gui->view();
 
-	auto flywheelVelController = std::make_shared<atum8::PidFF>(0.011, 0, 0, 4.23);
-	auto flywheelSettledChecker = std::make_shared<atum8::SettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration>>(100_rpm, 0_rpmps, 0_s);
+	auto flywheelVelController = std::make_shared<atum8::PidFF>(20, 0, 0, 4.05);
 	flywheel = atum8::SPFlywheelBuilder()
 				   .withMotors({16, -17})
 				   .withController(flywheelVelController)
-				   .withSettledChecker(flywheelSettledChecker)
+				   .withSettledChecker(30_rpm, 500_rpmps)
 				   .withSpeedMultiplier(15.0)
+				   .withRollingAverage(25)
+				   .withSlew(-20, 20)
 				   .build();
 	flywheel->start();
 
@@ -108,12 +113,15 @@ void opcontrol()
 	gui->view();
 	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
 	flywheel->setReferenceSpeed(lowSpeed);
+	master.print(2, 0, "LOW SPEED\n");
 	intake->shoot(0, false);
 	bool manualRoller{true};
 	bool readyNotified{false};
 
 	while (true)
 	{
+		gui->view();
+
 		// Drive Controls
 		const int forward{master.get_analog(ANALOG_LEFT_Y)};
 		const int strafe{master.get_analog(ANALOG_LEFT_X)};
@@ -171,12 +179,15 @@ void opcontrol()
 			{
 			case 0:
 				flywheel->setReferenceSpeed(lowSpeed);
+				master.print(2, 0, "LOW SPEED                ");
 				break;
 			case (int)lowSpeed.convert(okapi::rpm):
 				flywheel->setReferenceSpeed(highSpeed);
+				master.print(2, 0, "HIGH SPEED                ");
 				break;
 			default:
 				flywheel->setReferenceSpeed(0_rpm);
+				master.print(2, 0, "OFF                ");
 				break;
 			}
 			readyNotified = false;
@@ -227,15 +238,15 @@ void skills()
 	drive->forward(0.375_tile, 1_s);
 	drive->turn(-90_deg, 2_s);
 	drive->forward(1.35_tile, 4_s);
-	drive->turn(5_deg, 1_s);
+	drive->turn(6_deg, 1_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
-	drive->turn(-5_deg, 1_s);
-	drive->forward(-0.7_tile, 3_s);
+	drive->turn(-6_deg, 1_s);
+	drive->forward(-0.9_tile, 3_s);
 	drive->turn(-135_deg, 2_s);
 	intake->runIntake();
-	drive->forward(-2.15_tile, 5_s, 50);
+	drive->forward(-2.2_tile, 5_s, 80);
 	drive->turn(100_deg, 1_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
@@ -243,7 +254,7 @@ void skills()
 	drive->turn(-55_deg, 1_s);
 	drive->forward(-1_tile, 2_s);
 	drive->turn(135_deg, 2_s);
-	drive->forward(-1.9_tile, 5_s, 50);
+	drive->forward(-1.9_tile, 5_s, 80);
 	drive->turn(45_deg, 1_s);
 	drive->forward(1_tile, 2_s);
 	drive->turn(38_deg, 1_s);
@@ -256,7 +267,7 @@ void skills()
 	drive->forward(-1_tile, 2_s);
 	drive->turn(-45_deg, 1_s);
 	intake->runIntake();
-	drive->forward(-1.5_tile, 6_s, 30);
+	drive->forward(-1.5_tile, 6_s, 50);
 	drive->turn(55_deg, 1_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
