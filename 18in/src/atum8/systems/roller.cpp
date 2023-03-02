@@ -19,23 +19,11 @@ namespace atum8
             if (turningToColor)
             {
                 runRoller(80);
-                waitFor([this]()
-                        {
-                    auto rgb = optical->get_rgb();
-                    if(color == Color::Red)
-                        return rgb.red < rgb.blue;
-                    return rgb.red > rgb.blue; },
-                        0.75_s);
+                waitFor(readWrongColor(), 0.75_s);
                 runRoller(-40);
-                waitFor([this]()
-                        {
-                    auto rgb = optical->get_rgb();
-                    if(color == Color::Red)
-                        return rgb.red > rgb.blue;
-                    return rgb.red < rgb.blue; },
-                        0.75_s);
-                turningToColor = false;
+                waitFor(readRightColor(), 0.75_s);
                 stopRoller();
+                turningToColor = false;
             }
             pros::delay(stdDelay);
         }
@@ -69,6 +57,28 @@ namespace atum8
     Color Roller::getColor() const
     {
         return color;
+    }
+
+    std::function<bool()> Roller::readWrongColor()
+    {
+        return [this]()
+        {
+            auto rgb = optical->get_rgb();
+            if (color == Color::Red)
+                return rgb.red < rgb.blue;
+            return rgb.red > rgb.blue;
+        };
+    }
+
+    std::function<bool()> Roller::readRightColor()
+    {
+        return [this]()
+        {
+            auto rgb = optical->get_rgb();
+            if (color == Color::Red)
+                return rgb.red > rgb.blue;
+            return rgb.red < rgb.blue;
+        };
     }
 
     SPRoller SPRollerBuilder::build() const

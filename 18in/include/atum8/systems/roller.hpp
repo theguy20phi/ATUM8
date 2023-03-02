@@ -25,6 +25,8 @@ namespace atum8
         Color getColor() const;
 
     private:
+        std::function<bool()> readWrongColor();
+        std::function<bool()> readRightColor();
         UPMotor motor;
         UPOptical optical;
         Color color{Color::Red};
