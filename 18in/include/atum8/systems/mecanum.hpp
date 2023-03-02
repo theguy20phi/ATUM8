@@ -82,6 +82,7 @@ namespace atum8
         SPDriverSettings getDriverSettings() const;
 
     private:
+        void applyBrakes();
         bool isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
         void toReference(const std::function<okapi::QLength()> &distanceError,
                          const std::function<okapi::QAngle()> &angleError,

@@ -78,7 +78,9 @@ namespace atum8
     }
 
     void Mecanum::move(int forward, int strafe, int turn)
-    {
+    {   
+        if(!forward && !strafe && !turn) 
+            return applyBrakes();
         rFMotor->move(forward - strafe - turn);
         lFMotor->move(forward + strafe + turn);
         lBMotor->move(forward - strafe + turn);
@@ -145,6 +147,14 @@ namespace atum8
     Mecanum::SPDriverSettings Mecanum::getDriverSettings() const
     {
         return driverSettings;
+    }
+
+    void Mecanum::applyBrakes() 
+    {
+        rFMotor->move_velocity(0);
+        lFMotor->move_velocity(0);
+        lBMotor->move_velocity(0);
+        rBMotor->move_velocity(0);
     }
 
     bool Mecanum::isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
