@@ -17,10 +17,12 @@ void initialize()
 		{ return "ANUBIS"; },
 		[](int control)
 		{
-			return std::to_string(flywheel->getSpeed().convert(okapi::rpm));
+			return "Flywheel RPM: " + std::to_string(flywheel->getSpeed().convert(okapi::rpm));
 		}});
 	gui = autonSelector;
 
+	pros::lcd::print(0, "Don't touch!");
+	pros::lcd::print(1, "IMUs are calibrating...");
 	auto forwardPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(28, 0.01),
 														std::make_unique<atum8::PidFF>(7.5, 0.001),
 														4,
