@@ -66,6 +66,12 @@ namespace atum8
         return velocitySettledChecker->isSettled();
     }
 
+    void Flywheel::reset()
+    {
+        velocityController->reset();
+        slewRate->reset();
+    }
+
     SPController Flywheel::getVelocityController() const
     {
         return velocityController;
