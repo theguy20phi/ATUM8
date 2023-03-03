@@ -8,15 +8,11 @@ void Drive::controller() {
   if (Chris.get_digital(DIGITAL_A)) {
     if (speedResistor == 0.5) {
       speedResistor = 1;
-      //Chris.clear();
-      //Chris.print(0, 0, "Drive: Max Speed");
       pros::delay(100);
     }
 
     else if (speedResistor == 1) {
       speedResistor = 0.5;
-      //Chris.clear();
-      //Chris.print(0, 0, "Drive: Half Speed");
       pros::delay(100);
     }
   }
@@ -77,7 +73,7 @@ void Drive::move(double inches, double rpm, double acceleration, bool drift,
   while (true) {
     linearPosition =
         (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360;
-     std::cout << "linear Position:" << linearPosition << std::endl;
+    std::cout << "linear Position:" << linearPosition << std::endl;
 
     // Proportional Calculations
     linearError = linearDesired - linearPosition;
@@ -152,9 +148,9 @@ void Drive::turn(double angle, double rpm, double acceleration,
     turnkI = 0.08;
     turnkD = 0;
   }
-  else {
-    turnkP = 300;
-    turnkI = 0.8;
+  else  {
+    turnkP = 500;
+    turnkI = 0.0;
     turnkD = 0;
   }
   
@@ -197,7 +193,7 @@ void Drive::turn(double angle, double rpm, double acceleration,
     leftAcceleration(turnPower, acceleration);
 
    // Break if within error threshold
-    if (fabs(turnError) < 1.5 && fabs(turnDerivative) <= .05)
+    if (fabs(turnError) < .5 && fabs(turnDerivative) <= .05)
       break;
 
     // Timeout and break if the robot takes too long

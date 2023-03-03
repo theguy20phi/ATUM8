@@ -1,12 +1,13 @@
 #pragma once
-#include "driveHelpers.hpp"
 #include "catapult.hpp"
+#include "driveHelpers.hpp"
 #include "globals.hpp"
 #include "main.h"
 
+
 namespace atum8 {
 
-class Drive : DriveHelpers, Catapult{
+class Drive : DriveHelpers, Catapult {
 public:
   void controller();
   void move(double inches, double rpm, double acceleration, bool dift,

@@ -28,9 +28,20 @@ void Catapult::downUntilPrimed() {
 }
 
 void Catapult::shoot() {
-  rightCatapultMotor.move_voltage(12000);
-  leftCatapultMotor.move_voltage(12000);
-  pros::delay(200);
+  double intakeEfficiency =
+      (rightIntakeMotor.get_efficiency() + leftIntakeMotor.get_efficiency()) /
+      2;
+  double intakeEfficiencyThreshold;
+
+  //if (intakeEfficiency < intakeEfficiencyThreshold) {
+  //  rightIntakeMotor.move_voltage(0);
+  //  leftIntakeMotor.move_voltage(0);
+  //} else {
+
+    rightCatapultMotor.move_voltage(12000);
+    leftCatapultMotor.move_voltage(12000);
+    pros::delay(200);
+  //}
 }
 
 void Catapult::controller() {

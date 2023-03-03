@@ -21,6 +21,8 @@ void Intake::stop() {
   setIntakePower(0);
 }
 
+
+
 void Intake::setRollerToRed() {
   while (opticalSensor.get_hue() <
          blueRollerHue -
@@ -63,11 +65,12 @@ void Intake::controller() {
   // std::endl;
   static int buttonDuration;
   int longPress{250};
+
+  
   if (Chris.get_digital(DIGITAL_L1)) {
     in();
     buttonDuration = 0;
   }
-
   else if (Chris.get_digital(DIGITAL_L2)) {
 
     buttonDuration += 10;
