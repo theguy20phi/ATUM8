@@ -51,14 +51,14 @@ void initialize()
 	drive->reset();
 	gui->view();
 
-	auto flywheelVelController = std::make_shared<atum8::PidFF>(30, 0, 0, 4.05);
+	auto flywheelVelController = std::make_shared<atum8::PidFF>(33, 0, 0, 4.05);
 	flywheel = atum8::SPFlywheelBuilder()
 				   .withMotors({16, -17})
 				   .withController(flywheelVelController)
 				   .withSettledChecker(22.5_rpm, 22.5_rpmps)
 				   .withSpeedMultiplier(15.0)
 				   .withRollingAverage(20)
-				   .withSlew(-90, 90)
+				   .withSlew(-100, 100)
 				   .build();
 	flywheel->start();
 
@@ -254,33 +254,32 @@ void skills()
 	drive->turn(-135_deg, 2_s);
 	intake->runIntake();
 	drive->forward(-2.2_tile, 5_s, 80);
-	drive->turn(92.5_deg, 1_s);
+	drive->turn(93_deg, 1_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
 	flywheel->setReferenceSpeed(2600_rpm);
-	drive->turn(-47.5_deg, 1_s);
+	drive->turn(-48_deg, 1_s);
 	drive->forward(-1.2_tile, 2_s, 100);
 	drive->turn(135_deg, 2_s);
 	drive->forward(-2_tile, 5_s, 80);
-	drive->turn(71.5_deg, 1_s);
+	drive->turn(72_deg, 1_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
 	flywheel->setReferenceSpeed(2762.5_rpm);
-	drive->turn(-71.5_deg, 1_s);
+	drive->turn(-72_deg, 1_s);
 	drive->forward(-1.5_tile, 2_s);
-	drive->turn(52_deg, 1_s);
+	endGame->set_value(1);
+	drive->turn(53_deg, 2_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
-	drive->turn(-52_deg, 1_s);
-	endGame->set_value(1);
 }
 
 void match()
 {
-	flywheel->setReferenceSpeed(2780_rpm);
+	flywheel->setReferenceSpeed(2800_rpm);
 	pros::delay(2500);
 	intake->runIntake();
 	drive->forward(-1_tile, 2_s);
@@ -288,7 +287,7 @@ void match()
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
-	flywheel->setReferenceSpeed(2740_rpm);
+	flywheel->setReferenceSpeed(2775_rpm);
 	drive->turn(107.5_deg, 2_s);
 	drive->forward(-1.75_tile, 2_s);
 	drive->turn(-90_deg, 2_s);
@@ -298,7 +297,7 @@ void match()
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
-	flywheel->setReferenceSpeed(2790_rpm);
+	flywheel->setReferenceSpeed(2825_rpm);
 	drive->turn(84_deg);
 	drive->forward(-15_in, 2_s);
 	drive->forward(-1_tile, 3_s);
