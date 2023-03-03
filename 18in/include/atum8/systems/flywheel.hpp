@@ -8,6 +8,7 @@
 #include "atum8/slewRate.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
+
 namespace atum8
 {
     class Flywheel : public Task
@@ -31,6 +32,8 @@ namespace atum8
         bool readyToFire(okapi::QAngularSpeed speed);
 
         bool readyToFire() const;
+
+        void reset();
 
         SPController getVelocityController() const;
 

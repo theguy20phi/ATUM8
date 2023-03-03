@@ -19,9 +19,9 @@ namespace atum8
             if (turningToColor)
             {
                 runRoller(80);
-                waitFor(readWrongColor(), 0.75_s);
-                runRoller(-40);
-                waitFor(readRightColor(), 0.75_s);
+                waitFor(readWrongColor(), 0.5_s);
+                runRoller(-50);
+                waitFor(readRightColor(), 0.5_s);
                 stopRoller();
                 turningToColor = false;
             }
