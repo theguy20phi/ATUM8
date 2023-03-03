@@ -6,7 +6,10 @@
 #include "atum8\globals.hpp"
 #include "atum8\intake.hpp"
 
+#include "atum8\autonRoutes\redAuton.hpp"
+#include "atum8\autonRoutes\blueAuton.hpp"
 #include "atum8\autonRoutes\programmingSkillsAuton.hpp"
+#include "atum8\autonRoutes\testingAuton.hpp"
 
 // hello
 void initialize() {}
@@ -51,18 +54,19 @@ void autonomous() {
 
 
   if (atum8::program == 1) {
- 
+    atum8::redAuton();
   }
 
   if (atum8::program == 2) {
+    atum8::blueAuton();
   }
 
   if (atum8::program == 3) {
-    programingSkillsAuton();
+    atum8::programingSkillsAuton();
   }
 
   if (atum8::program == 4) {
-    // intake.setRollerToRed();
+    atum8::testingAuton();
   }
 }
 
