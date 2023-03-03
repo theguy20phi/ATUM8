@@ -83,6 +83,7 @@ void initialize()
 void disabled()
 {
 	gui = autonSelector;
+	intake->shoot(0, false);
 	while (true)
 	{
 		gui->view();
@@ -94,6 +95,7 @@ void disabled()
 void autonomous()
 {
 	flywheel->reset();
+	intake->shoot(0, false);
 	switch (autonSelector->getMatchInfo().routine)
 	{
 	case atum8::Routine::Skills:
@@ -278,16 +280,32 @@ void skills()
 
 void match()
 {
-	flywheel->setReferenceSpeed(highSpeed);
+	flywheel->setReferenceSpeed(2780_rpm);
+	pros::delay(2500);
 	intake->runIntake();
-	drive->forward(-27.5_in, 2_s);
-	drive->turn(-165_deg, 3_s);
+	drive->forward(-1_tile, 2_s);
+	drive->turn(-152.5_deg, 3_s);
 	intake->shoot(3);
 	atum8::waitFor([]()
 				   { return !intake->isShooting(); });
-	drive->turn(65_deg, 2_s);
-	drive->forward(-1.41_tile, 2_s);
-
+	flywheel->setReferenceSpeed(2740_rpm);
+	drive->turn(107.5_deg, 2_s);
+	drive->forward(-1.75_tile, 2_s);
+	drive->turn(-90_deg, 2_s);
+	drive->forward(-0.35_tile, 2_s);
+	drive->forward(0.35_tile, 2_s);
+	drive->turn(6_deg);
+	intake->shoot(3);
+	atum8::waitFor([]()
+				   { return !intake->isShooting(); });
+	flywheel->setReferenceSpeed(2790_rpm);
+	drive->turn(84_deg);
+	drive->forward(-15_in, 2_s);
+	drive->forward(-1_tile, 3_s);
+	drive->turn(-60_deg, 2_s);
+	intake->shoot(3);
+	atum8::waitFor([]()
+				   { return !intake->isShooting(); });
 }
 
 void special()
