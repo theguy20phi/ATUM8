@@ -153,10 +153,8 @@ void Drive::turn(double angle, double rpm, double acceleration,
     turnkI = 0.0;
     turnkD = 0;
   }
-  
 
   turnPrevError = 0;
-
   turnDesired = angle;
   maxPower = power;
 
