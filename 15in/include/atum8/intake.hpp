@@ -21,7 +21,7 @@ public:
 private:
   const float redRollerHue { 42.50 };
   const float blueRollerHue { 89.25 };
-  const float rollerColorThreshold { 10 };
+  const float rollerColorThreshold { 15 };
 
 };
 } // namespace atum8
