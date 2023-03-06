@@ -70,6 +70,7 @@ namespace atum8
     {
         velocityController->reset();
         slewRate->reset();
+        motorGroup->move_voltage(0);
     }
 
     SPController Flywheel::getVelocityController() const

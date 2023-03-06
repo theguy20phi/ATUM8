@@ -54,8 +54,8 @@ namespace atum8
     bool Intake::shouldShoot()
     {
         if (flywheelBlocks)
-            return flywheel->readyToFire() && shooting;
-        return shooting;
+            return flywheel->readyToFire() && shooting > 0;
+        return shooting > 0;
     }
 
     SPIntake SPIntakeBuilder::build() const
