@@ -14,10 +14,6 @@
 // hello
 void initialize() {}
 
-void disabled() {
-  pros::lcd::clear_line(1);
-  pros::lcd::set_text(1, "darn i'm disabled...");
-}
 
 // Only runs in a competition switch is plugged in
 void competition_initialize() {
