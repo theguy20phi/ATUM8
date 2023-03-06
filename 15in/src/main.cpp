@@ -12,11 +12,7 @@
 #include "atum8\autonRoutes\testingAuton.hpp"
 
 // hello
-void initialize() {}
-
-
-// Only runs in a competition switch is plugged in
-void competition_initialize() {
+void initialize() {
   // Initialize LCD Simulator in DARK MODE!!!
   pros::lcd::initialize();
   pros::lcd::set_background_color(0, 0, 0);
@@ -46,24 +42,19 @@ void competition_initialize() {
   }
 }
 
+void disabled() {}
+
+void competition_initialize() {}
+
 void autonomous() {
-
-
-  if (atum8::program == 1) {
+  if (atum8::program == 1) 
     atum8::redAuton();
-  }
-
-  if (atum8::program == 2) {
+  else if (atum8::program == 2)
     atum8::blueAuton();
-  }
-
-  if (atum8::program == 3) {
+  else if (atum8::program == 3)
     atum8::programingSkillsAuton();
-  }
-
-  if (atum8::program == 4) {
+  else if (atum8::program == 4) 
     atum8::testingAuton();
-  }
 }
 
   void opcontrol() {
