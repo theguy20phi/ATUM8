@@ -24,17 +24,19 @@ void Intake::stop() {
 
 
 void Intake::setRollerToRed() {
+
   while (opticalSensor.get_hue() <
          blueRollerHue -
-             rollerColorThreshold) // opticalSensor.get_hue() > redRollerHue)
+             rollerColorThreshold)
+
   {
-    //std::cout << "Optical Sesnor" << opticalSensor.get_hue() << std::endl;
+      std::cout<< opticalSensor.get_hue() << std::endl;
     setRightPower(-1200);
     setLeftPower(-1200);
 
     setIntakePower(-12000);
   }
-  setIntakePower(4000);
+  setIntakePower(3000);
   pros::delay(500);
   stop();
   setRightPower(0);
@@ -44,16 +46,15 @@ void Intake::setRollerToRed() {
 void Intake::setRollerToBlue() {
   while (opticalSensor.get_hue() >
          redRollerHue +
-             rollerColorThreshold) // opticalSensor.get_hue() > redRollerHue)
+             rollerColorThreshold)
   {
 
-    //std::cout << "Optical Sesnor" << opticalSensor.get_hue() << std::endl;
     setRightPower(-1000);
     setLeftPower(-1000);
 
     setIntakePower(-12000);
   }
-  setIntakePower(4000);
+  setIntakePower(3000);
   pros::delay(500);
   stop();
   setRightPower(0);
@@ -61,12 +62,9 @@ void Intake::setRollerToBlue() {
 }
 
 void Intake::controller() {
-  // std::cout << "Optical Sensor Value: " << opticalSensor.get_hue() <<
-  // std::endl;
   static int buttonDuration;
   int longPress{250};
 
-  
   if (Chris.get_digital(DIGITAL_L1)) {
     in();
     buttonDuration = 0;
@@ -79,7 +77,7 @@ void Intake::controller() {
     } else {
       out();
     }
-  } else {
+  }else {
     buttonDuration = 0;
   }
 }
