@@ -1,7 +1,7 @@
 #pragma once
 #include "catapult.hpp"
-#include "driveHelpers.hpp"
-#include "globals.hpp"
+#include "atum8/driveHelpers.hpp"
+#include "atum8/globals.hpp"
 #include "main.h"
 
 

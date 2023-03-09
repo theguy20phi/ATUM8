@@ -1,4 +1,4 @@
-#include "atum8/catapult.hpp"
+#include "atum8/systems/catapult.hpp"
 #include "main.h"
 
 namespace atum8 {

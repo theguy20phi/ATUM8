@@ -1,4 +1,4 @@
-#include "atum8/endGame.hpp"
+#include "atum8/systems/endGame.hpp"
 #include "main.h"
 
 namespace atum8 {

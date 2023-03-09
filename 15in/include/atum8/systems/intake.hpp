@@ -1,6 +1,6 @@
 #pragma once
-#include "globals.hpp"
-#include "driveHelpers.hpp"
+#include "atum8/globals.hpp"
+#include "atum8/driveHelpers.hpp"
 #include "main.h"
 
 namespace atum8 {
