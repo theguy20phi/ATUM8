@@ -1,10 +1,10 @@
 #include "main.h"
 #include "atum8\autonSelector.hpp"
-#include "atum8\catapult.hpp"
-#include "atum8\drive.hpp"
-#include "atum8\endGame.hpp"
+#include "atum8\systems\catapult.hpp"
+#include "atum8\systems\drive.hpp"
+#include "atum8\systems\endGame.hpp"
 #include "atum8\globals.hpp"
-#include "atum8\intake.hpp"
+#include "atum8\systems\intake.hpp"
 
 #include "atum8\autonRoutes\redAuton.hpp"
 #include "atum8\autonRoutes\blueAuton.hpp"
@@ -12,15 +12,7 @@
 #include "atum8\autonRoutes\testingAuton.hpp"
 
 // hello
-void initialize() {}
-
-void disabled() {
-  pros::lcd::clear_line(1);
-  pros::lcd::set_text(1, "darn i'm disabled...");
-}
-
-// Only runs in a competition switch is plugged in
-void competition_initialize() {
+void initialize() {
   // Initialize LCD Simulator in DARK MODE!!!
   pros::lcd::initialize();
   pros::lcd::set_background_color(0, 0, 0);
@@ -50,24 +42,19 @@ void competition_initialize() {
   }
 }
 
+void disabled() {}
+
+void competition_initialize() {}
+
 void autonomous() {
-
-
-  if (atum8::program == 1) {
+  if (atum8::program == 1) 
     atum8::redAuton();
-  }
-
-  if (atum8::program == 2) {
+  else if (atum8::program == 2)
     atum8::blueAuton();
-  }
-
-  if (atum8::program == 3) {
+  else if (atum8::program == 3)
     atum8::programingSkillsAuton();
-  }
-
-  if (atum8::program == 4) {
+  else if (atum8::program == 4) 
     atum8::testingAuton();
-  }
 }
 
   void opcontrol() {

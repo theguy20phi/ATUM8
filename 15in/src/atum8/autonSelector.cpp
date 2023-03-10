@@ -33,59 +33,58 @@ void AutonSelector::confirmSelection(){
 void AutonSelector::displayRedSelection(){
     pros::lcd::set_text(1, "Alliance Color: Red");
 	pros::lcd::set_text(2, "Purpose: Matches");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 60");
 	pros::lcd::set_text(7, "Curent State: Selection");
 }
 
 void AutonSelector::displayRedActive(){
     pros::lcd::set_text(1, "Alliance Color: Red");
 	pros::lcd::set_text(2, "Purpose: Matches");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 60");
 	pros::lcd::set_text(7, "Curent State: Active");
 }
 
 void AutonSelector::displayBlueSelection(){
     pros::lcd::set_text(1, "Alliance Color: Blue");
 	pros::lcd::set_text(2, "Purpose: Matches");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 60");
 	pros::lcd::set_text(7, "Curent State: Selection");
 }
 
 void AutonSelector::displayBlueActive(){
     pros::lcd::set_text(1, "Alliance Color: Blue");
 	pros::lcd::set_text(2, "Purpose: Matches");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 60");
 	pros::lcd::set_text(7, "Curent State: Active");
 }
 
 void AutonSelector::displaySkillsSelection(){
     pros::lcd::set_text(1, "Alliance Color: Red");
 	pros::lcd::set_text(2, "Purpose: Skills");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 220");
 	pros::lcd::set_text(7, "Curent State: Selection");
 }
 
 void AutonSelector::displaySkillsActive(){
     pros::lcd::set_text(1, "Alliance Color: Red");
 	pros::lcd::set_text(2, "Purpose: Skills");
-	pros::lcd::set_text(3, "Points: 420");
+	pros::lcd::set_text(3, "Points: 220");
 	pros::lcd::set_text(7, "Curent State: Active");
 }
 
 void AutonSelector::displayTestingSelection(){
     pros::lcd::set_text(1, "Alliance Color: Purple idk");
 	pros::lcd::set_text(2, "Purpose: Testing");
-	pros::lcd::set_text(3, "Points: Over 9000");
+	pros::lcd::set_text(3, "Points: YUP");
 	pros::lcd::set_text(7, "Curent State: Selection");
 }
 
 void AutonSelector::displayTestingActive(){
-    pros::lcd::set_text(1, "Alliance Color: Purple id");
+    pros::lcd::set_text(1, "Alliance Color: Purple idk");
 	pros::lcd::set_text(2, "Purpose: Testing");
-	pros::lcd::set_text(3, "Points: Over 9000");
+	pros::lcd::set_text(3, "Points: YUP");
 	pros::lcd::set_text(7, "Curent State: Active");
 }
-
 
 
 void AutonSelector::selector() {
