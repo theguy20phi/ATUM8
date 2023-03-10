@@ -134,6 +134,7 @@ namespace atum8
         forwardController->reset();
         turnController->reset();
         forwardSlewRate->reset();
+        move();
     }
 
     void Mecanum::setBrakeMode(const pros::motor_brake_mode_e &brakeMode)

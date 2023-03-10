@@ -61,9 +61,9 @@ namespace atum8
          * @brief Shoots the intake.
          *
          * @param iShooting
-         * @param iFlywheelBlocks
+         * @param iTimeout
          */
-        void shoot(int iShooting = 1, bool iFlywheelBlocks = true);
+        void shoot(int iShooting = 1, const okapi::QTime &iTimeout = 0_s);
 
         /**
          * @brief Determines if the intake is shooting.
@@ -80,7 +80,8 @@ namespace atum8
         SPFlywheel flywheel;
         const int shotDelay;
         int shooting{0};
-        bool flywheelBlocks{true};
+        okapi::QTime timeout{0_s};
+        okapi::QTime prevTime{0_s};
     };
 
     using UPIntake = std::unique_ptr<Intake>;

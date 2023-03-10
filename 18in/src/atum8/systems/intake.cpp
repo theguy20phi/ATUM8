@@ -23,6 +23,7 @@ namespace atum8
                 piston->set_value(1);
                 pros::delay(shotDelay);
                 shooting--;
+                prevTime = pros::millis() * okapi::millisecond;
             }
             piston->set_value(1);
             pros::delay(stdDelay);
@@ -39,11 +40,11 @@ namespace atum8
         motor->move(0);
     }
 
-    void Intake::shoot(int iShooting, bool iFlywheelBlocks)
+    void Intake::shoot(int iShooting, const okapi::QTime &iTimeout)
     {
-
         shooting = iShooting;
-        flywheelBlocks = iFlywheelBlocks;
+        timeout = iTimeout;
+        prevTime = pros::millis() * okapi::millisecond;
     }
 
     bool Intake::isShooting() const
@@ -53,9 +54,10 @@ namespace atum8
 
     bool Intake::shouldShoot()
     {
-        if (flywheelBlocks)
-            return flywheel->readyToFire() && shooting > 0;
-        return shooting > 0;
+        if(shooting <= 0) return false;
+        okapi::QTime currentTime{pros::millis() * okapi::millisecond};
+        if(timeout == 0_s) return true;
+        return flywheel->readyToFire() || (currentTime - prevTime >= timeout);
     }
 
     SPIntake SPIntakeBuilder::build() const
