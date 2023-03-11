@@ -2,7 +2,7 @@
 #include "okapi/api/units/QLength.hpp"
 
 constexpr okapi::QAngularSpeed adjustment{37.5_rpm};
-constexpr okapi::QAngularSpeed lowSpeed{2450_rpm};
+constexpr okapi::QAngularSpeed lowSpeed{2475_rpm};
 constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
 constexpr okapi::QTime flywheelTimeout{1_s};
 
