@@ -18,10 +18,10 @@ namespace atum8
         {
             if (turningToColor)
             {
-                runRoller(80);
-                waitFor(readWrongColor(), 0.5_s);
-                runRoller(-50);
-                waitFor(readRightColor(), 0.5_s);
+                runRoller(50);
+                waitFor(readWrongColor(), 0.75_s);
+                runRoller(-30);
+                waitFor(readRightColor(), 0.75_s);
                 stopRoller();
                 turningToColor = false;
             }
@@ -31,7 +31,7 @@ namespace atum8
 
     void Roller::runRoller(int speed)
     {
-        motor->move(speed);
+        motor->move_velocity(speed);
     }
 
     void Roller::stopRoller()

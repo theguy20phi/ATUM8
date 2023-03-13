@@ -50,7 +50,7 @@ void initializeLCD();
 void skills();
 void match();
 void special();
-void turnRoller();
+void turnRoller(int rotation);
 
 /**
  * Prototypes for the competition control tasks are redefined here to ensure

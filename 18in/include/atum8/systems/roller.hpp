@@ -44,7 +44,7 @@ namespace atum8
          *
          * @param speed
          */
-        void runRoller(int speed = 127);
+        void runRoller(int speed = 200);
 
         /**
          * @brief Stops the roller.
@@ -58,7 +58,7 @@ namespace atum8
          * @param position
          * @param speed
          */
-        void runForAt(double position, int speed = 50);
+        void runForAt(double position, int speed = 100);
 
         /**
          * @brief Requests the roller to turn to the appropriate alliance color.
