@@ -5,7 +5,7 @@ class Pid {
 public:
   Pid(float, float, float, double, double);
 
-  double getOutput(double state, double reference);
+  double getOutput(double current, double desired);
   void setMaxOutput(double output);
   void reset();
   bool isSettled();
