@@ -8,6 +8,7 @@ Pid linearController(0, 0, 0, .5, .05);
 Pid turnController(0, 0, 0, 1, .05);
 
 void Drive::controller() {
+  setDriveBrakeMode("BRAKE");
   rightFrontDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
   rightMiddleDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
   rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
