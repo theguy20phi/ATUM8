@@ -1,0 +1,58 @@
+#include "atum8/controllers/pid.hpp"
+#include "main.h"
+
+
+namespace atum8 {
+
+  Pid::Pid(float Kp, float Ki, float Kd, double errorThreshold, double derivativeThreshold){
+    kP = Kp;
+    kI = Ki;
+    kD = Kd;
+
+    eT = errorThreshold;
+    dT = derivativeThreshold;
+}
+
+double Pid::getOutput(double state, double reference) {
+
+  // Calculate Proportional Value
+  error = reference - state;
+
+  // Calculuate Integral Value
+  newIntegral = integral + error;
+
+  // Calculate Derivative Value and Update Error
+  derivative = error - prevError;
+  prevError = error;
+
+  // Calculuate Ouput
+  output = error * kP + integral * kI + derivative * kD;
+
+  // Output Clamping and Anti-Integral Wind-up
+  if (output > maxOutput)
+    output = maxOutput;
+  else if (output < -maxOutput)
+    output = -maxOutput;
+  else
+    integral = newIntegral;
+
+  return output;
+}
+
+void Pid::setMaxOutput(double output) { maxOutput = output; }
+
+bool Pid::isSettled(){
+    if(fabs(error) < eT && fabs(derivative) <= dT)
+        return true;
+    else
+        return false;
+}
+
+void Pid::reset() {
+  error = 0;
+  integral = 0;
+  newIntegral = 0;
+  derivative = 0;
+  prevError = 0;
+}
+} // namespace atum8
