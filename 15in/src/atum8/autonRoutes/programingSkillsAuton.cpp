@@ -138,7 +138,7 @@ void programingSkillsAuton() {
   // Wait for Braden's bot
   pros::delay(2000);
 
-  //endGame.shoot();
-  //catapult.down();
+  endGame.shoot();
+  catapult.down();
 }
 } // namespace atum8
