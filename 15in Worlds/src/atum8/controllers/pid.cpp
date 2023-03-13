@@ -54,5 +54,6 @@ void Pid::reset() {
   newIntegral = 0;
   derivative = 0;
   prevError = 0;
+  maxOutput = 12000;
 }
 } // namespace atum8
