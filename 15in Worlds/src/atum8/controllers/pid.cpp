@@ -13,10 +13,10 @@ namespace atum8 {
     dT = derivativeThreshold;
 }
 
-double Pid::getOutput(double state, double reference) {
+double Pid::getOutput(double current, double desired) {
 
   // Calculate Proportional Value
-  error = reference - state;
+  error = desired - current;
 
   // Calculuate Integral Value
   newIntegral = integral + error;
@@ -54,5 +54,6 @@ void Pid::reset() {
   newIntegral = 0;
   derivative = 0;
   prevError = 0;
+  maxOutput = 12000;
 }
 } // namespace atum8

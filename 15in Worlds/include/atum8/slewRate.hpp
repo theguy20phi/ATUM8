@@ -3,15 +3,11 @@
 #include "main.h"
 
 namespace atum8{
-    class SlewRate {
+    class SlewRate{
         public:
-        //void slew(double targetValue, ) {
-
-        //}
-        double getOutput() {
-            return output;
-        }
+        double getOutput(float current, float desired, float accelerationStepUp);
         private:
-        double output;
+        float output;
+        float accelerationStepDown{3000};
     };
 }
