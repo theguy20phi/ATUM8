@@ -1,3 +1,15 @@
+/**
+ * @file pid.hpp
+ * @author Thomas Tran Dang (thomasdang92@gmail.com.com)
+ * @brief This file provides a class for a PID control loop. Since the 15in is only a catapult we only use this for the drive. 
+ *        (proportional, integral, deriviate)
+ * @version 0.1
+ * @date 2023-03-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
+
 #pragma once
 
 namespace atum8 {

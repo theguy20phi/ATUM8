@@ -1,3 +1,14 @@
+/**
+ * @file globals.hpp
+ * @author Thomas Tran Dang (thomasdang92@gmail.com)
+ * @brief This file provides the setup for the motors, controller, and sensors. 
+ *        It also provides globals variables used throughout the program. 
+ * @version 0.1
+ * @date 2023-03-14
+ * 
+ * @copyright Copyright (c) 2023
+ * 
+ */
 #pragma once
 #include "main.h"
 #include "pros/adi.hpp"
