@@ -33,9 +33,14 @@ extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
 extern pros::Optical opticalSensor;
 extern pros::ADIDigitalOut endGame;
+extern pros::Rotation rightEncoder;
+extern pros::Rotation leftEncoder;
+extern pros::Rotation backEncoder;
 
 //
 const double encoderWheelRadius{1.625}; // inches
+const double encoderWheelCircumference{200/25.4};
+
 const double driveGearRatio {60.00000000000000000 / 36.00000000000000000};
 extern int program;
 } // namespace atum8
