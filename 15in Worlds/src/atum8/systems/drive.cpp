@@ -5,7 +5,7 @@
 
 namespace atum8 {
 Pid linearController(800, 1, 8.8, .5, .05);
-Pid turnController(0, 0, 0, 1, .05);
+Pid turnController(270, 0.8, 0, 1, .05);
 
 void Drive::controller() {
   setDriveBrakeMode("BRAKE");
@@ -52,7 +52,7 @@ void Drive::turn(double angle, double rpm, double acceleration,
   while (true) {
     power = turnController.getOutput(getImuSensorAverages(), angle);
 
-    setRightPower(-SlewRate::getOutput(getRightPower(), power, acceleration));
+    setRightPower(SlewRate::getOutput(getRightPower(), -power, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
 
     if (turnController.isSettled())
