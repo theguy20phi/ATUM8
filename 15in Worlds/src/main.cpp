@@ -1,4 +1,5 @@
 #include "main.h"
+#include "atum8/vision.hpp"
 #include "main.h"
 //#include "atum8\autonSelector.hpp"
 #include "atum8\systems\catapult.hpp"
@@ -31,7 +32,8 @@ void initialize() {
 
 void disabled() {}
 
-void competition_initialize() {}
+void competition_initialize() {
+}
 
 void autonomous() {
 
@@ -39,8 +41,12 @@ void autonomous() {
 
 void opcontrol() {
 		atum8::Drive drive;
-	drive.move(24, 200, 600, false, 1);
-	drive.move(-10, 200, 600, false, 1);
-	drive.move(-5, 200, 600, false, 1);
-	drive.turn(90, 200, 600, 1);
+    atum8::Vision vision;
+
+    vision.redAimBot();
+
+	//drive.move(24, 200, 600, false, 1);
+	//drive.move(-10, 200, 600, false, 1);
+	//drive.move(-5, 200, 600, false, 1);
+	//drive.turn(90, 200, 600, 1);
 }
