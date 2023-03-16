@@ -26,6 +26,4 @@ namespace atum8 {
      double Odometry::getLocalY() {
         return 2 * sin(getTheta()/2) * ((getDeltaRight() / getTheta()) / sR);
      }
-
-    
 }
