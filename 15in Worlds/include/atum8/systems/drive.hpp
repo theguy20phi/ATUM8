@@ -23,13 +23,14 @@ namespace atum8 {
           void move(double inches, double rpm, double acceleration, bool dift, double secThreshold);
           void turn(double angle, double rpm, double acceleration, double secThreshold);
 
-
-        private:
+        protected: 
         void setRightPower(double power);
         void setLeftPower(double power);
+        void setDriveBrakeMode(const std::string brakeMode);
+
+        private:
         double getRightPower();
         double getLeftPower();
-        void setDriveBrakeMode(const std::string brakeMode);
         double getRightEncoderValues();
         double getLeftEncoderValues();
         double getEncoderAverages();
