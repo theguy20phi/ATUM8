@@ -12,9 +12,10 @@
 #pragma once
 #include "main.h"
 #include "globals.hpp"
+#include "systems/drive.hpp"
 
 namespace atum8{
-    class Vision {
+    class Vision : Drive{
         public:
         void redAimBot();
         void blueAimBot();
@@ -23,7 +24,7 @@ namespace atum8{
         private:
         const short int redID { 1 };
         const short int blueID { 2 };
-        const short int visionWidth { 316 };
-        const short int visionHeight { 212 };
+        const short int visionFOVWidth { 316 };
+        const short int visionFOVHeight { 212 };
     };
 }
