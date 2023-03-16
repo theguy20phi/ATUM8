@@ -27,12 +27,9 @@ void Drive::move(double inches, double rpm, double acceleration, bool dift,
   while (true) {
     power = linearController.getOutput(
         (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360, inches);
-//std::cout << power << std::endl;
+        
     setRightPower(SlewRate::getOutput(getRightPower(), power, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
-
-    //std:: cout << SlewRate::getOutput(getRightPower(), power, acceleration) << std::endl;
-
 
     if (linearController.isSettled())
       break;
