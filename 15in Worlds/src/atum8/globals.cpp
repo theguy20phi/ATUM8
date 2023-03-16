@@ -2,6 +2,7 @@
 #include "pros/adi.hpp"
 #include "pros/motors.h"
 #include "pros/rotation.hpp"
+#include "pros/vision.hpp"
 
 namespace atum8 {
 
@@ -28,10 +29,11 @@ pros::Imu imuSensorAlpha(20);
 pros::Imu imuSensorBeta(15);
 pros::Imu imuSensorCharlie(11);
 pros::Optical opticalSensor(9);
+pros::Vision visionSensor(7);
 
-pros::Rotation rightEncoder('C');
-pros::Rotation leftEncoder('D');
-pros::Rotation backEncoder('E');
+pros::Rotation rightEncoder('D');
+pros::Rotation leftEncoder('E');
+pros::Rotation backEncoder('F');
 
 int program{0};
 } // namespace atum8

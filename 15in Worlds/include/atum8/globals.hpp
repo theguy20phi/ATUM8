@@ -32,6 +32,7 @@ extern pros::Imu imuSensorAlpha;
 extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
 extern pros::Optical opticalSensor;
+extern pros::Vision visionSensor;
 extern pros::ADIDigitalOut endGame;
 extern pros::Rotation rightEncoder;
 extern pros::Rotation leftEncoder;
