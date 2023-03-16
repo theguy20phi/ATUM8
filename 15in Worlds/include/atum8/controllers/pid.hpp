@@ -15,7 +15,15 @@
 namespace atum8 {
 class Pid {
 public:
-  Pid(float, float, float, double, double);
+  Pid() {
+    kP = 0;
+    kI = 0;
+    kD = 0;
+    eT = 0;
+    dT = 0;
+  }
+
+  Pid(float Kp, float Ki, float Kd, double errorThreshold, double derivativeThreshold);
 
   double getOutput(double current, double desired);
   void setMaxOutput(double output);
