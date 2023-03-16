@@ -4,7 +4,7 @@
 #include "main.h"
 
 namespace atum8 {
-Pid linearController(0, 0, 0, .5, .05);
+Pid linearController(800, 1, 8.8, .5, .05);
 Pid turnController(0, 0, 0, 1, .05);
 
 void Drive::controller() {
@@ -27,15 +27,19 @@ void Drive::move(double inches, double rpm, double acceleration, bool dift,
   while (true) {
     power = linearController.getOutput(
         (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360, inches);
-
+//std::cout << power << std::endl;
     setRightPower(SlewRate::getOutput(getRightPower(), power, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
+
+    //std:: cout << SlewRate::getOutput(getRightPower(), power, acceleration) << std::endl;
+
 
     if (linearController.isSettled())
       break;
     if (msCounter / 1000 > secThreshold)
       break;
 
+    msCounter+=10;
     pros::delay(10);
   }
   reset();
@@ -56,6 +60,7 @@ void Drive::turn(double angle, double rpm, double acceleration,
     if (msCounter / 1000 > secThreshold)
       break;
 
+    msCounter+=10;
     pros::delay(10);
   }
   reset();
@@ -147,6 +152,7 @@ void Drive::resetEncoders() {
 
 void Drive::reset() {
   power = 0;
+  msCounter = 0;
 
   setRightPower(0);
   setLeftPower(0);
