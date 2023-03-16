@@ -27,7 +27,7 @@ void Drive::move(double inches, double rpm, double acceleration, bool dift,
   while (true) {
     power = linearController.getOutput(
         (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360, inches);
-        
+
     setRightPower(SlewRate::getOutput(getRightPower(), power, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
 
