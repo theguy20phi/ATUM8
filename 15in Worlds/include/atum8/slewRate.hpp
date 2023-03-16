@@ -19,6 +19,6 @@ namespace atum8{
         double getOutput(float current, float desired, float accelerationStepUp);
         private:
         float output;
-        float accelerationStepDown{3000};
+        float accelerationStepDown{1000};
     };
 }
