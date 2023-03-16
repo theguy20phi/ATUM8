@@ -29,7 +29,7 @@ pros::Imu imuSensorAlpha(20);
 pros::Imu imuSensorBeta(15);
 pros::Imu imuSensorCharlie(11);
 pros::Optical opticalSensor(9);
-pros::Vision visionSensor(7);
+pros::Vision visionSensor(6);
 
 pros::Rotation rightEncoder('D');
 pros::Rotation leftEncoder('E');

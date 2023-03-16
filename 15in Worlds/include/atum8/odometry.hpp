@@ -1,6 +1,6 @@
 #pragma once
-#include "globals.hpp"
 #include "main.h"
+#include "globals.hpp"
 
 namespace atum8{
     class Odometry {

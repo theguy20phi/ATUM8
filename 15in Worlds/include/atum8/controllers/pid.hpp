@@ -11,6 +11,7 @@
  */
 
 #pragma once
+#include "main.h"
 
 namespace atum8 {
 class Pid {

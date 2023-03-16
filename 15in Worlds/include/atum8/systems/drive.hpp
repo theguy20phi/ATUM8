@@ -11,12 +11,13 @@
  */
 
 #pragma once
+#include "main.h"
 #include "atum8/controllers/pid.hpp"
-#include "atum8/imus.hpp"
 #include "atum8/slewRate.hpp"
+#include "atum8/imus.hpp"
 
 namespace atum8 {
-    class Drive : Pid, Imus, SlewRate{
+    class Drive : Pid, SlewRate, Imus{
         public:
           void controller();
           void move(double inches, double rpm, double acceleration, bool dift, double secThreshold);
