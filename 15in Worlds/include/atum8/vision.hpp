@@ -2,7 +2,7 @@
  * @file Vision.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for aim bot capaibilities. 
- * @version 0.2
+ * @version 0.3
  * @date 2023-03-16
  * 
  * @copyright Copyright (c) 2023
@@ -20,6 +20,7 @@ namespace atum8{
         public:
         void redAimBot();
         void blueAimBot();
+        void diskAimBot();
 
 
         private:
