@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "constants.hpp"
+#include "misc/constants.hpp"
 
 namespace atum8
 {

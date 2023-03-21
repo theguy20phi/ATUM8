@@ -13,7 +13,7 @@
 #pragma once
 
 #include <memory>
-#include "atum8/constants.hpp"
+#include "atum8/misc/constants.hpp"
 #include "pros/rtos.hpp"
 
 namespace atum8

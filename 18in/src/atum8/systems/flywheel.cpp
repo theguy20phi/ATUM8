@@ -7,12 +7,12 @@ namespace atum8
                        SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
                        SPRollingAverage iRollingAverage,
                        SPSlewRate iSlewRate,
-                       double iSpeedMultiplier) : motorGroup{std::move(iMotorGroup)},
+                       double iGearing) : motorGroup{std::move(iMotorGroup)},
                                                   velocityController{iVelocityController},
                                                   velocitySettledChecker{iVelocitySettledChecker},
                                                   rollingAverage{iRollingAverage},
                                                   slewRate{iSlewRate},
-                                                  speedMultiplier{iSpeedMultiplier}
+                                                  gearing{iGearing}
     {
         motorGroup->set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
     }
@@ -50,7 +50,7 @@ namespace atum8
             avgRawVelocity += velocity;
         avgRawVelocity /= motorGroup->size();
         // speedMultiplier adjusts for gearing
-        avgRawVelocity *= speedMultiplier;
+        avgRawVelocity *= gearing;
         if (rollingAverage)
             return rollingAverage->getAverage(avgRawVelocity) * okapi::rpm;
         return avgRawVelocity * okapi::rpm;
@@ -94,7 +94,7 @@ namespace atum8
                                           velocitySettledChecker,
                                           rollingAverage,
                                           slewRate,
-                                          speedMultiplier);
+                                          gearing);
     }
 
     SPFlywheelBuilder SPFlywheelBuilder::withMotors(const std::vector<std::int8_t> &iPorts)
@@ -103,9 +103,9 @@ namespace atum8
         return *this;
     }
 
-    SPFlywheelBuilder SPFlywheelBuilder::withSpeedMultiplier(double iSpeedMultiplier)
+    SPFlywheelBuilder SPFlywheelBuilder::withGearing(double iGearing)
     {
-        speedMultiplier = iSpeedMultiplier;
+        gearing = iGearing;
         return *this;
     }
 

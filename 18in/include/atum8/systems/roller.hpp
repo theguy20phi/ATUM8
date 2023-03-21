@@ -11,8 +11,8 @@
 
 #pragma once
 
-#include "atum8/constants.hpp"
-#include "atum8/task.hpp"
+#include "atum8/misc/constants.hpp"
+#include "atum8/misc/task.hpp"
 
 namespace atum8
 {
