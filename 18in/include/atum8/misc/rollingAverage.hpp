@@ -22,8 +22,7 @@ namespace atum8
      * average simply means that the average of a continually updating value is
      * calculated only as the average of the last few values (which, here, is
      * determined by the template parameter).
-     *
-     * @tparam size
+     * 
      */
     class RollingAverage
     {
@@ -59,7 +58,7 @@ namespace atum8
 
     private:
         std::vector<double> values;
-        const double size;
+        const int size;
     };
 
     using UPRollingAverage = std::unique_ptr<RollingAverage>;

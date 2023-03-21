@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pros/llemu.hpp"
-#include "atum8/constants.hpp"
+#include "atum8/misc/constants.hpp"
 #include <string>
 #include <memory>
 

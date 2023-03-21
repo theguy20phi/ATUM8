@@ -11,12 +11,12 @@
 
 #pragma once
 
-#include "atum8/constants.hpp"
+#include "atum8/misc/constants.hpp"
 #include "atum8/controllers/controller.hpp"
-#include "atum8/settledChecker.hpp"
-#include "atum8/task.hpp"
-#include "atum8/rollingAverage.hpp"
-#include "atum8/slewRate.hpp"
+#include "atum8/misc/settledChecker.hpp"
+#include "atum8/misc/task.hpp"
+#include "atum8/misc/rollingAverage.hpp"
+#include "atum8/misc/slewRate.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
 
@@ -37,14 +37,14 @@ namespace atum8
          * @param iVelocitySettledChecker
          * @param iRollingAverage
          * @param iSlewRate
-         * @param iSpeedMultiplier
+         * @param iGearing
          */
         Flywheel(UPMotorGroup iMotorGroup,
                  SPController iVelocityController,
                  SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
                  SPRollingAverage iRollingAverage = nullptr,
                  SPSlewRate iSlewRate = nullptr,
-                 double iSpeedMultiplier = 7.0);
+                 double iGearing = 7.0);
 
         /**
          * @brief This function will run in parallel to other tasks. Will be responsible
@@ -114,7 +114,7 @@ namespace atum8
 
     private:
         UPMotorGroup motorGroup;
-        double speedMultiplier{7.0};
+        double gearing{7.0};
         SPController velocityController;
         SPSlewRate slewRate;
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> velocitySettledChecker;
@@ -148,14 +148,14 @@ namespace atum8
         SPFlywheelBuilder withMotors(const std::vector<std::int8_t> &iPorts);
 
         /**
-         * @brief Flywheel configured with this "speed multiplier," which is the gear ratio
+         * @brief Flywheel configured with this gearing,  which is the gear ratio
          * of the flywheel (consider the motor as a green motor and a blue cartridge as a 1:3
          * ratio).
          *
-         * @param iSpeedMultiplier
+         * @param iGearing
          * @return SPFlywheelBuilder
          */
-        SPFlywheelBuilder withSpeedMultiplier(double iSpeedMultiplier);
+        SPFlywheelBuilder withGearing(double iGearing);
 
         /**
          * @brief Flywheel configured with this velocity controller.
@@ -196,7 +196,7 @@ namespace atum8
 
     private:
         std::vector<std::int8_t> ports;
-        double speedMultiplier{15.0};
+        double gearing{15.0};
         SPController velocityController;
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> velocitySettledChecker;
         SPRollingAverage rollingAverage;

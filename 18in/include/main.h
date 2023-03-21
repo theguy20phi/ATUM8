@@ -40,7 +40,7 @@
 atum8::SPGui gui;
 atum8::SPAutonSelector autonSelector;
 atum8::SPDebugger debugger;
-atum8::SPMecanum drive;
+atum8::SPDrive drive;
 atum8::SPFlywheel flywheel;
 atum8::SPIntake intake;
 atum8::SPRoller roller;
