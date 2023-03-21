@@ -14,6 +14,10 @@
 
 #include "pros/rtos.hpp"
 #include "okapi/api/units/QTime.hpp"
+#include "okapi/api/units/QLength.hpp"
+#include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/units/QSpeed.hpp"
+#include "okapi/api/units/QAngularSpeed.hpp"
 
 namespace atum8
 {
@@ -111,4 +115,10 @@ namespace atum8
 
     template <typename Unit, typename UnitDeriv>
     using SPSettledChecker = std::shared_ptr<SettledChecker<Unit, UnitDeriv>>;
+
+    using UPLateralSettledChecker = UPSettledChecker<okapi::QLength, okapi::QSpeed>;
+    using SPLateralSettledChecker = SPSettledChecker<okapi::QLength, okapi::QSpeed>;
+
+    using UPAngularSettledChecker = UPSettledChecker<okapi::QAngle, okapi::QAngularSpeed>;
+    using SPAngularSettledChecker = SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed>;
 }

@@ -1,11 +1,10 @@
 #include "main.h"
-#include "okapi/api/units/QLength.hpp"
 
 constexpr okapi::QAngularSpeed lowSpeed{2475_rpm};
 constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
 constexpr okapi::QTime flywheelTimeout{1_s};
 
-atum8::SPOdometry odometry;
+atum8::SPPoseEstimator odometry;
 
 void initialize()
 {
@@ -28,37 +27,10 @@ void initialize()
 		},
 		[](int control)
 		{
-			return "X: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
+			return "H: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
 		}});
 	gui = autonSelector;
 
-	auto forwardPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(21, 0.01),
-														std::make_unique<atum8::PidFF>(6.5, 0.001),
-														4,
-														0.9);
-	auto turnPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(10, 0.01),
-													 std::make_unique<atum8::PidFF>(2.75, 0.015),
-													 5,
-													 0.9);
-	drive = atum8::SPDriveBuilder()
-				.withLeftPorts({1, 11})
-				.withRightPorts({-10, -20})
-				.withGearing(1)
-				.withImus({14, 15, 16}, 1)
-				.withBaseWidth(14.625_in)
-				.withWheelCircum(5.4_in)
-				.withForwardController(forwardPidFF)
-				.withForwardSlew(6)
-				.withTurnController(turnPidFF)
-				.withTurnSlew(12)
-				.withForwardSettledChecker(1_in, 1_inps, 0.375_s)
-				.withTurnSettledChecker(1_deg, 500_degps, 0.375_s)
-				.withStickFunction([](int input)
-								   { return pow(input, 3) / 16129; })
-				.build();
-	drive->reset();
-	gui->view();
-	
 	odometry = atum8::SPOdometryBuilder()
 				   .withLeft('C', 'D')
 				   .withRight('E', 'F')
@@ -67,6 +39,32 @@ void initialize()
 				   .withWidth(14.53_in)
 				   .withWheelCircum(7.6802125_in)
 				   .build();
+
+	auto forwardPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(21, 0.01),
+														std::make_unique<atum8::PidFF>(6.5, 0.001),
+														4,
+														0.9);
+
+	auto turnPidFF = std::make_shared<atum8::Slider>(std::make_unique<atum8::PidFF>(10, 0.01),
+													 std::make_unique<atum8::PidFF>(2.75, 0.015),
+													 5,
+													 0.9);
+
+	drive = atum8::SPDriveBuilder()
+				.withLeftPorts({1, 11})
+				.withRightPorts({-10, -20})
+				.withPoseEstimator(odometry)
+				.withStickFunction([](int input)
+								   { return pow(input, 3) / 16129; })
+				.withLateralController(forwardPidFF)
+				.withAngularController(turnPidFF)
+				.withFinalLateralSettledChecker(1_in, 1_inps, 0.375_s)
+				.withMidwayLateralSettledChecker(3_in)
+				.withAngularSettledChecker(1_deg, 500_degps, 0.375_s)
+				.build();
+
+	gui->view();
+
 	odometry->start();
 
 	// auto flywheelVelController = std::make_shared<atum8::PidFF>(30, 0, 0, 4.05);
@@ -109,6 +107,8 @@ void disabled()
 
 void autonomous()
 {
+	drive->moveTo({{1_tile, 1_tile, 0_deg}}, 0_s, 50, 50);
+
 	// flywheel->reset();
 	// intake->shoot(0);
 	switch (autonSelector->getMatchInfo().routine)
@@ -251,11 +251,4 @@ void match()
 
 void special()
 {
-}
-
-void turnRoller(int rotation)
-{
-	drive->forward(-20_ft, 0.5_s, 25);
-	roller->runForAt(rotation, 200);
-	drive->forward(-20_ft, 1.5_s, 25);
 }

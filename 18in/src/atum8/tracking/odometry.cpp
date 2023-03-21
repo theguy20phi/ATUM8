@@ -8,7 +8,7 @@ namespace atum8
                        const Position &startingPosition) : left{std::move(iLeft)},
                                                            right{std::move(iRight)},
                                                            side{std::move(iSide)},
-                                                           position{startingPosition}
+                                                           PoseEstimator(startingPosition)
     {
     }
 
@@ -35,24 +35,9 @@ namespace atum8
         }
     }
 
-    void Odometry::setPosition(const Position &iPosition)
-    {
-        position = iPosition;
-    }
-
-    Position Odometry::getPosition() const
-    {
-        return position;
-    }
-
-    void Odometry::tare()
-    {
-        position = {0_in, 0_in, 0_deg};
-    }
-
     SPOdometry SPOdometryBuilder::build() const
     {
-        return std::make_shared<Odometry>(std::make_unique<Odometer>(leftA, leftB, (leftReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, width / 2}),
+        return std::make_unique<Odometry>(std::make_unique<Odometer>(leftA, leftB, (leftReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, width / 2}),
                                           std::make_unique<Odometer>(rightA, rightB, (rightReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, width / 2}),
                                           std::make_unique<Odometer>(sideA, sideB, (sideReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, sideDistanceToCenter}),
                                           startingPosition);

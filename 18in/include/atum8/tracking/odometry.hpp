@@ -1,44 +1,28 @@
 #pragma once
 
-#include "misc/constants.hpp"
-#include "misc/task.hpp"
+#include "atum8/misc/constants.hpp"
+#include "atum8/misc/task.hpp"
 #include "odometer.hpp"
-#include "okapi/api/units/QLength.hpp"
-#include "okapi/api/units/QAngle.hpp"
+#include "poseEstimator.hpp"
 
 using namespace okapi::literals;
 
 namespace atum8
 {
-
-    struct Position
-    {
-        okapi::QLength x;
-        okapi::QLength y;
-        okapi::QAngle h;
-    };
-
-    class Odometry : public Task
+    class Odometry : public PoseEstimator
     {
     public:
         Odometry(UPOdometer iLeft,
                  UPOdometer iRight,
                  UPOdometer iSide,
-                 const Position &startingPosition = {0_tile, 0_tile, 0_deg});
+                 const Position &startingPosition = {0_in, 0_in, 0_deg});
 
         void taskFn();
-
-        void setPosition(const Position &iPosition);
-
-        Position getPosition() const;
-
-        void tare();
 
     private:
         UPOdometer left;
         UPOdometer right;
         UPOdometer side;
-        Position position;
     };
 
     using UPOdometry = std::unique_ptr<Odometry>;
@@ -67,8 +51,7 @@ namespace atum8
         SPOdometryBuilder withStartingPosition(const Position &iStartingPosition);
 
     private:
-        char leftA,
-            leftB;
+        char leftA, leftB;
         bool leftReversed{false};
         char rightA, rightB;
         bool rightReversed{false};

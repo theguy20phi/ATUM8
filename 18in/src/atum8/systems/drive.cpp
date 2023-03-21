@@ -10,30 +10,57 @@ namespace atum8
 
     Drive::Drive(UPMotorGroup iLeft,
                  UPMotorGroup iRight,
-                 double iGearing,
-                 SPDimensions iDimensions,
+                 SPPoseEstimator iPoseEstimator,
                  SPDriverSettings iDriverSettings,
-                 SPController iForwardController,
-                 SPController iTurnController,
-                 SPSettledChecker<okapi::QLength, okapi::QSpeed> iForwardSettledChecker,
-                 SPSettledChecker<okapi::QAngle, okapi::QAngularSpeed> iTurnSettledChecker,
-                 SPSlewRate iForwardSlewRate,
-                 SPSlewRate iTurnSlewRate,
-                 UPImus iImus,
-                 double iImuTrust) : left{std::move(iLeft)},
-                                     right{std::move(iRight)},
-                                     gearing{std::move(iGearing)},
-                                     dimensions{iDimensions},
-                                     driverSettings{iDriverSettings},
-                                     forwardController{iForwardController},
-                                     turnController{iTurnController},
-                                     forwardSettledChecker{iForwardSettledChecker},
-                                     turnSettledChecker{iTurnSettledChecker},
-                                     forwardSlewRate{iForwardSlewRate},
-                                     turnSlewRate{iTurnSlewRate},
-                                     imus{std::move(iImus)},
-                                     imuTrust{std::abs(iImuTrust)}
+                 SPController iLateralController,
+                 SPController iAngularController,
+                 SPLateralSettledChecker iFinalLateralSettledChecker,
+                 SPLateralSettledChecker iMidwayLateralSettledChecker,
+                 SPAngularSettledChecker iAngularSettledChecker) : left{std::move(iLeft)},
+                                                                   right{std::move(iRight)},
+                                                                   poseEstimator{iPoseEstimator},
+                                                                   driverSettings{iDriverSettings},
+                                                                   lateralController{iLateralController},
+                                                                   angularController{iAngularController},
+                                                                   finalLateralSettledChecker{iFinalLateralSettledChecker},
+                                                                   midwayLateralSettledChecker{iMidwayLateralSettledChecker},
+                                                                   angularSettledChecker{iAngularSettledChecker}
     {
+    }
+
+    void Drive::moveTo(const std::vector<Position> &positions,
+                       const okapi::QTime &maxTime,
+                       int maxLateral,
+                       int maxAngular)
+    {
+        tare();
+        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
+        for (int i{0}; i < positions.size(); i++)
+        {
+            while (!isTimeExpired(startTime, maxTime))
+            {
+                const Position state{poseEstimator->getPosition()};
+                const Position waypoint{generateWaypoint(state, positions[i])};
+                okapi::QLength lateralError{distance(state, waypoint)};
+                okapi::QAngle angularError{angle(state, waypoint)};
+                if (okapi::abs(angularError) > 90_deg) {
+                    lateralError = -1 * lateralError;
+                    angularError = okapi::OdomMath::constrainAngle180(angularError + 180_deg);
+                }
+                if(okapi::abs(lateralError) < 2_in)
+                    angularError = 0_deg;
+                if (isSettled(lateralError, angularError, i, positions.size() - 1))
+                    break;
+                int lateralOutput = lateralController->getOutput(lateralError.convert(okapi::inch));
+                lateralOutput = std::clamp(lateralOutput, -maxLateral, maxLateral);
+                lateralOutput *= abs(cos(angularError.convert(okapi::radian)));
+                int angularOutput = angularController->getOutput(angularError.convert(okapi::degree));
+                angularOutput = std::clamp(angularOutput, -maxAngular, maxAngular);
+                move(lateralOutput, angularOutput);
+                pros::delay(10);
+            }
+        }
+        tare();
     }
 
     void Drive::driver(int forward, int turn)
@@ -43,32 +70,9 @@ namespace atum8
         turn = (abs(turn) < driverSettings->deadZone) ? 0 : turn;
         forward = driverSettings->stickFunction(forward);
         turn = driverSettings->stickFunction(turn);
-        forward = driverSettings->forwardSlewRate ? driverSettings->forwardSlewRate->slew(forward) : forward;
-        turn = driverSettings->turnSlewRate ? driverSettings->turnSlewRate->slew(turn) : turn;
         forward *= driverSettings->maxPower;
         turn *= driverSettings->maxPower;
         move(forward, turn);
-    }
-
-    void Drive::forward(const okapi::QLength &distance, const okapi::QTime &maxTime, int maxForward)
-    {
-        toReference([this, distance]()
-                    { return distance - getDistance(); },
-                    [this]()
-                    { return okapi::OdomMath::constrainAngle180(-getAngle()); }, // Deviation from initial angle
-                    maxTime,
-                    maxForward);
-    }
-
-    void Drive::turn(const okapi::QAngle &angle, const okapi::QTime &maxTime, int maxTurn)
-    {
-        toReference([this]()
-                    { return 0_m; }, // Shouldn't use forward controller
-                    [this, angle]()
-                    { return okapi::OdomMath::constrainAngle180(angle - getAngle()); },
-                    maxTime,
-                    0,
-                    maxTurn);
     }
 
     void Drive::move(int forward, int turn)
@@ -79,51 +83,12 @@ namespace atum8
         right->move(forward - turn);
     }
 
-    okapi::QLength Drive::getDistance() const
-    {
-        std::vector<double> positions = left->get_positions();
-        std::vector<double> rightPositions = right->get_positions();
-        positions.insert(positions.end(), rightPositions.begin(), rightPositions.end());
-        double avgRotation{std::accumulate(positions.begin(), positions.end(), 0.0) / positions.size()};
-        return avgRotation * gearing / 360 * dimensions->wheelCircum;
-    }
-
-    okapi::QAngle Drive::getAngle() const
-    {
-        std::vector<double> leftPositions = left->get_positions();
-        std::vector<double> rightPositions = right->get_positions();
-        const double lAvgRotation{std::accumulate(leftPositions.begin(), leftPositions.end(), 0.0) / leftPositions.size()};
-        const double rAvgRotation{std::accumulate(rightPositions.begin(), rightPositions.end(), 0.0) / rightPositions.size()};
-        const okapi::QLength diff{(lAvgRotation - rAvgRotation) / 360 * dimensions->wheelCircum};
-        const okapi::QAngle driveAngle{(gearing * diff / dimensions->baseWidth) * okapi::radian};
-        if (imus)
-            return imus->get_rotation() * imuTrust * okapi::degree + driveAngle * (1 - imuTrust);
-        return driveAngle;
-    }
-
-    bool Drive::isSettled(const okapi::QLength &distanceError, const okapi::QAngle &angleError)
-    {
-        return forwardSettledChecker->isSettled(distanceError) &&
-               turnSettledChecker->isSettled(angleError);
-    }
-
-    void Drive::reset()
-    {
-        move();
-        tare();
-        // This will calibrate the IMU and block!
-        if (imus)
-            imus->reset();
-    }
-
     void Drive::tare()
     {
         left->tare_position();
         right->tare_position();
-        imus->tare_rotation();
-        forwardController->reset();
-        turnController->reset();
-        forwardSlewRate->reset();
+        lateralController->reset();
+        angularController->reset();
         move();
     }
 
@@ -144,41 +109,30 @@ namespace atum8
         right->move_velocity(0);
     }
 
-    bool Drive::isTimeNotExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
+    bool Drive::isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime)
     {
-        return (pros::millis() * okapi::millisecond - startTime) <= maxTime || maxTime == 0_s;
+        return (pros::millis() * okapi::millisecond - startTime) > maxTime && maxTime != 0_s;
     }
 
-    void Drive::toReference(const std::function<okapi::QLength()> &distanceError,
-                            const std::function<okapi::QAngle()> &angleError,
-                            const okapi::QTime &maxTime,
-                            int maxForward,
-                            int maxTurn)
+    bool Drive::isSettled(const okapi::QLength &lateralError,
+                          const okapi::QAngle &angularError,
+                          int currentIndex,
+                          int lastIndex)
     {
-        tare();
-        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
-        while (!isSettled(distanceError(), angleError()) &&
-               isTimeNotExpired(startTime, maxTime))
-        {
-            move(useForwardController(distanceError(), maxForward),
-                 useTurnController(angleError(), maxTurn));
-            pros::delay(atum8::stdDelay);
-        }
-        move(); // Stop the drive
+        midwayLateralSettledChecker->isSettled(lateralError);
+        finalLateralSettledChecker->isSettled(lateralError);
+        return (currentIndex != lastIndex &&
+                midwayLateralSettledChecker->isSettled()) ||
+               (currentIndex == lastIndex &&
+                finalLateralSettledChecker->isSettled());
     }
 
-    int Drive::useForwardController(const okapi::QLength &distanceError, int maxForward)
+    Position Drive::generateWaypoint(const Position &state, const Position &endPoint)
     {
-        double forwardOutput{forwardController->getOutput(distanceError.convert(okapi::inch))};
-        forwardOutput = forwardSlewRate ? forwardSlewRate->slew(forwardOutput) : forwardOutput;
-        return std::clamp((int)forwardOutput, -maxForward, maxForward);
-    }
-
-    int Drive::useTurnController(const okapi::QAngle &angleError, int maxTurn)
-    {
-        double turnOutput{turnController->getOutput(angleError.convert(okapi::degree))};
-        turnOutput = turnSlewRate ? turnSlewRate->slew(turnOutput) : turnOutput;
-        return std::clamp((int)turnOutput, -maxTurn, maxTurn);
+        const okapi::QLength distanceBtwn{distance(state, endPoint)};
+        const okapi::QLength x{endPoint.x - distanceBtwn * 0.6 * okapi::sin(endPoint.h)};
+        const okapi::QLength y{endPoint.y - distanceBtwn * 0.6 * okapi::cos(endPoint.h)};
+        return {x, y, 0_deg};
     }
 
     /* -------------------------------------------------------------------------- */
@@ -189,13 +143,13 @@ namespace atum8
     {
         return std::make_shared<Drive>(std::make_unique<pros::MotorGroup>(leftPorts),
                                        std::make_unique<pros::MotorGroup>(rightPorts),
-                                       gearing,
-                                       dimensions,
+                                       poseEstimator,
                                        driverSettings,
-                                       forwardController, turnController,
-                                       forwardSettledChecker, turnSettledChecker,
-                                       forwardSlewRate, turnSlewRate,
-                                       std::make_unique<Imus>(imuPorts), imuTrust);
+                                       lateralController,
+                                       angularController,
+                                       finalLateralSettledChecker,
+                                       midwayLateralSettledChecker,
+                                       angularSettledChecker);
     }
 
     SPDriveBuilder SPDriveBuilder::withLeftPorts(const std::vector<int8_t> &iLeftPorts)
@@ -210,35 +164,15 @@ namespace atum8
         return *this;
     }
 
-    SPDriveBuilder SPDriveBuilder::withGearing(double iGearing) 
+    SPDriveBuilder SPDriveBuilder::withPoseEstimator(SPPoseEstimator iPoseEstimator)
     {
-        gearing = iGearing;
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withBaseWidth(const okapi::QLength &baseWidth)
-    {
-        dimensions->baseWidth = baseWidth;
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withWheelCircum(const okapi::QLength &wheelCircum)
-    {
-        dimensions->wheelCircum = wheelCircum;
+        poseEstimator = iPoseEstimator;
         return *this;
     }
 
     SPDriveBuilder SPDriveBuilder::withStickDeadZone(int deadZone)
     {
         driverSettings->deadZone = deadZone;
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::witStickSlew(double slew)
-    {
-        driverSettings->forwardSlewRate = std::make_shared<SlewRate>(slew);
-        driverSettings->strafeSlewRate = std::make_shared<SlewRate>(slew);
-        driverSettings->turnSlewRate = std::make_shared<SlewRate>(slew);
         return *this;
     }
 
@@ -254,56 +188,44 @@ namespace atum8
         return *this;
     }
 
-    SPDriveBuilder SPDriveBuilder::withForwardController(SPController iForwardController)
-    {
-        forwardController = iForwardController;
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withTurnController(SPController iTurnController)
-    {
-        turnController = iTurnController;
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withForwardSettledChecker(const okapi::QLength &distance,
-                                                             const okapi::QSpeed &speed,
-                                                             const okapi::QTime &time)
-    {
-        forwardSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, speed, time);
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withTurnSettledChecker(const okapi::QAngle &angle,
-                                                          const okapi::QAngularSpeed &angularSpeed,
-                                                          const okapi::QTime &time)
-    {
-        turnSettledChecker = std::make_shared<SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(angle, angularSpeed, time);
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withForwardSlew(double slewRate)
-    {
-        forwardSlewRate = std::make_shared<SlewRate>(slewRate);
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withTurnSlew(double slewRate)
-    {
-        turnSlewRate = std::make_shared<SlewRate>(slewRate);
-        return *this;
-    }
-
     SPDriveBuilder SPDriveBuilder::withBrakeMode(const pros::motor_brake_mode_e &iBrakeMode)
     {
         driverSettings->brakeMode = iBrakeMode;
         return *this;
     }
 
-    SPDriveBuilder SPDriveBuilder::withImus(const std::vector<int> &ports, double trust)
+    SPDriveBuilder SPDriveBuilder::withLateralController(SPController iLateralController)
     {
-        imuPorts = ports;
-        imuTrust = trust;
+        lateralController = iLateralController;
         return *this;
     }
+
+    SPDriveBuilder SPDriveBuilder::withAngularController(SPController iAngularController)
+    {
+        angularController = iAngularController;
+        return *this;
+    }
+
+    SPDriveBuilder SPDriveBuilder::withFinalLateralSettledChecker(const okapi::QLength &distance,
+                                                                  const okapi::QSpeed &speed,
+                                                                  const okapi::QTime &time)
+    {
+        finalLateralSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, speed, time);
+        return *this;
+    }
+
+    SPDriveBuilder SPDriveBuilder::withMidwayLateralSettledChecker(const okapi::QLength &distance)
+    {
+        midwayLateralSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, 0_inps, 0_s);
+        return *this;
+    }
+
+    SPDriveBuilder SPDriveBuilder::withAngularSettledChecker(const okapi::QAngle &angle,
+                                                             const okapi::QAngularSpeed &angularSpeed,
+                                                             const okapi::QTime &time)
+    {
+        angularSettledChecker = std::make_shared<SettledChecker<okapi::QAngle, okapi::QAngularSpeed>>(angle, angularSpeed, time);
+        return *this;
+    }
+
 }
