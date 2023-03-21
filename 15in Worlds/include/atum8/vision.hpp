@@ -2,7 +2,7 @@
  * @file Vision.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for aim bot capaibilities. 
- * @version 0.3
+ * @version 0.4
  * @date 2023-03-16
  * 
  * @copyright Copyright (c) 2023
