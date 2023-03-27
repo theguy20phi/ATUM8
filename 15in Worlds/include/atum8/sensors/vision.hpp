@@ -11,9 +11,9 @@
 
 #pragma once
 #include "main.h"
-#include "globals.hpp"
-#include "systems/drive.hpp"
-#include "controllers/pid.hpp"
+#include "atum8/globals.hpp"
+#include "atum8/systems/drive.hpp"
+#include "atum8/controllers/pid.hpp"
 
 namespace atum8{
     class Vision : Drive{

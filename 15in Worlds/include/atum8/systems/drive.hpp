@@ -12,7 +12,7 @@
 
 #pragma once
 #include "atum8/controllers/pid.hpp"
-#include "atum8/imus.hpp"
+#include "atum8/sensors/imus.hpp"
 #include "atum8/slewRate.hpp"
 #include "main.h"
 

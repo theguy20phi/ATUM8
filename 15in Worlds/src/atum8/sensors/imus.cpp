@@ -1,4 +1,4 @@
-#include "atum8/imus.hpp"
+#include "atum8/sensors/imus.hpp"
 #include "main.h"
 
 

@@ -1,4 +1,4 @@
-#include "atum8/vision.hpp"
+#include "atum8/sensors/vision.hpp"
 #include "atum8/globals.hpp"
 #include "atum8/systems/drive.hpp"
 #include "main.h"
