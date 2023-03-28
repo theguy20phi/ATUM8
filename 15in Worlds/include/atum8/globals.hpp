@@ -3,12 +3,13 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the setup for the motors, controller, and sensors. 
  *        It also provides globals variables used throughout the program. 
- * @version 0.1
+ * @version 0.2
  * @date 2023-03-14
  * 
  * @copyright Copyright (c) 2023
  * 
  */
+ 
 #pragma once
 #include "main.h"
 #include "pros/adi.hpp"
@@ -44,4 +45,8 @@ const double encoderWheelCircumference{200/25.4};
 
 const double driveGearRatio {60.0 / 36.0};
 extern int program;
+extern double globalX;
+extern double globalY;
+extern double globalHeadingInRadians;
+extern double globalHeadingInDegrees;
 } // namespace atum8

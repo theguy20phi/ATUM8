@@ -36,4 +36,9 @@ pros::Rotation leftEncoder('E');
 pros::Rotation backEncoder('F');
 
 int program{0};
+double globalX;
+double globalY;
+double globalHeadingInRadians;
+double globalHeadingInDegrees;
+
 } // namespace atum8
