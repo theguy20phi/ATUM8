@@ -37,4 +37,13 @@ namespace atum8 {
         globalHeadingInRadians += deltaHeading;
         globalHeadingInDegrees = globalHeadingInRadians * 180 / M_PI;
     }
+
+    void Odometry::setStartingPosition(double x, double y) {
+        globalX = x;
+        globalY = y;
+    }
+
+    double Odometry::getPosition() {
+        return true;//yup idk how to do this right now deal with it later me lol kek
+    }
 }
