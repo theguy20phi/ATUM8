@@ -12,11 +12,13 @@
 #pragma once
 #include "main.h"
 #include "globals.hpp"
+#include "atum8/task.hpp"
 
 namespace atum8{
-    class Odometry {
+    class Odometry : public Task{
         public:
 
+        void taskFn();
         void trackPosition();
         void setStartingPosition(double x, double y);
         double getPosition();

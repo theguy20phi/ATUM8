@@ -3,6 +3,11 @@
 #include "main.h"
 
 namespace atum8 {
+    void Odometry::taskFn() {
+        while(true) 
+            trackPosition();
+    }
+
     void Odometry::trackPosition() {
         // Calculuate Delta Right, Delta Left, and Delta Back
         deltaRightPosition = ( (rightEncoder.get_position() * encoderWheelCircumference * multiplier) - prevRightPosition);

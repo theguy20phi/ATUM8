@@ -46,16 +46,16 @@ void autonomous() {
 
 void opcontrol() {
   atum8::Odometry odometry;
+  atum8::Drive drive;
 
   std::string xString;
   std::string yString;
   
   while(true) {
-    odometry.trackPosition();
-    xString =  atum8::globalX;
-    yString = atum8::globalY;
-    pros::lcd::set_text(1, xString);
-    pros::lcd::set_text(2, yString);
+    //xString =  atum8::globalX;
+    //yString = atum8::globalY;
+    //pros::lcd::set_text(1, xString);
+    //pros::lcd::set_text(2, yString);
   }
 
 
