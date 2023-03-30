@@ -20,7 +20,7 @@ namespace atum8{
 
         void taskFn();
         void trackPosition();
-        void setStartingPosition(double x, double y);
+        void setStartingPosition(double x, double y, double headingInDegrees);
         double getPosition();
 
         private:
@@ -29,14 +29,18 @@ namespace atum8{
         const float sL { 7.25 };
         const float sS { 2.5 };
 
+        double rightPosition;
+        double leftPosition;
+        double backPosition;
+
         double deltaRightPosition;
-        double prevRightPosition;
+        double prevRightPosition { 0 };
 
         double deltaLeftPosition;
-        double prevLeftPosition;
+        double prevLeftPosition { 0 };
 
         double deltaBackPosition;
-        double prevBackPosition;
+        double prevBackPosition { 0 };
 
         double deltaHeading;
         double currentHeading;

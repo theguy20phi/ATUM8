@@ -13,6 +13,9 @@
 #include "pros/rtos.hpp"
 #include "pros/screen.hpp"
 
+atum8::Drive drive;
+atum8::Intake intake;
+atum8::Odometry odometry;
 
 void initialize() {
   pros::lcd::initialize();
@@ -35,7 +38,8 @@ void initialize() {
   // }
 }
 
-void disabled() {}
+void disabled() {
+}
 
 void competition_initialize() {
 }
@@ -45,19 +49,13 @@ void autonomous() {
 }
 
 void opcontrol() {
-  atum8::Odometry odometry;
-  atum8::Drive drive;
-
-  std::string xString;
-  std::string yString;
-  
-  while(true) {
-    //xString =  atum8::globalX;
-    //yString = atum8::globalY;
-    //pros::lcd::set_text(1, xString);
-    //pros::lcd::set_text(2, yString);
-  }
-
+  odometry.setStartingPosition(0, 0, 0);
+  odometry.start();
+  drive.moveToReference(10, 10, 0, 50, 60, 60);
+  //drive.start();
+  //intake.start();
+  //drive.stop();
+  //intake.start();
 
 //     while (true) {
 //         pros::screen::set_pen(COLOR_RED);

@@ -1,14 +1,23 @@
 #include "atum8/systems/drive.hpp"
 #include "atum8/globals.hpp"
+#include <math.h>
 #include "atum8/slewRate.hpp"
 #include "main.h"
 
 namespace atum8 {
 Pid linearController(800, 1, 8.8, .5, .05);
 Pid turnController(270, 0.8, 0, 1, .05);
+Pid moveToReferenceController(800, 0, 0, 0.5, 0.05);
+
+void Drive::taskFn() {
+  while(true) {
+    controller();
+    pros::delay(10);
+  }
+}
 
 void Drive::controller() {
-  setDriveBrakeMode("BRAKE");
+  setDriveBrakeMode("COAST");
   rightFrontDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
   rightMiddleDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
   rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
@@ -19,6 +28,80 @@ void Drive::controller() {
 };
 
 double rpmToPower(double rpm) { return (rpm * 12000) / 200; };
+double numpySignAdapter(double number){
+  if(number < 0)
+    return -1;
+  else if(number > 0)
+    return 1;
+  else
+    return 0;
+}
+
+double findMinAngle(double targetHeading, double currentHeading) {
+  double turnAngle = targetHeading - currentHeading;
+  if(turnAngle > 180 || turnAngle < -180)
+    turnAngle = -1 * numpySignAdapter(turnAngle) * (360 - abs(turnAngle));
+  return turnAngle;
+}
+
+void Drive::moveToReference(double targetX, double targetY, double targetHeading, double rpm, double acceleration, double secThreshold) {
+  reset();
+  moveToReferenceController.setMaxOutput(rpmToPower(rpm));
+  while(true) {
+   double absTargetAngle = atan2((targetY - globalY), (targetX - globalX)) * 180/M_PI;
+
+   if(absTargetAngle < 0)
+     absTargetAngle += 360;
+
+  double distance = std::sqrt(pow((targetX - globalX), 2) + pow((targetY - globalY), 2));
+  std::cout << "distance: " << distance << std::endl;
+
+   double alpha = findMinAngle(absTargetAngle, targetHeading);
+   double errorTerm1 = findMinAngle(absTargetAngle, globalHeadingInDegrees);
+
+   double beta = atan(1/distance) * 180/M_PI;
+  
+   if(alpha < 0)
+     beta = -beta;
+
+   double turnError;
+
+   if(abs(alpha) < abs(beta))
+     turnError = errorTerm1 + alpha;
+   else
+     turnError = errorTerm1 + beta;
+
+   double linearPower = 800 * distance;
+   double turnPower = 200 * turnError;
+
+   bool closeToTarget = false;
+   if (distance < 0.1)
+    closeToTarget = true;
+  if(closeToTarget) {
+    linearPower = 800 * distance * numpySignAdapter(cos(turnError * M_PI/180));
+    turnError = findMinAngle(targetHeading, globalHeadingInDegrees);
+    turnPower = 200 * atan(tan(turnError * M_PI/180)) * 180/M_PI;
+
+    if(linearPower > 12000) 
+      linearPower = 12000;
+    if(linearPower < -12000)
+      linearPower = -12000;
+    if(turnPower > 12000)
+      turnPower = 12000;
+    if(turnPower < -12000)
+      turnPower = -12000;
+
+    if(linearPower > (6000 - abs(turnPower)))
+      linearPower = 6000 - abs(turnPower);
+  }
+
+  // if(linearPower > (100 - abs(turnPower)))
+  //   linearPower = 100 - abs(turnPower);
+
+   setRightPower(linearPower + turnPower);
+   setLeftPower(linearPower - turnPower);
+  }
+}
 
 void Drive::move(double inches, double rpm, double acceleration, bool dift,
                  double secThreshold) {
