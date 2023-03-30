@@ -1,4 +1,4 @@
-#include "atum8/odometry.hpp"
+#include "atum8/algorithms/odometry.hpp"
 #include "globals.hpp"
 #include "main.h"
 

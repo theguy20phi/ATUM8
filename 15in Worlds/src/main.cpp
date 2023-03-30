@@ -1,5 +1,5 @@
 #include "main.h"
-#include "atum8/odometry.hpp"
+#include "atum8/algorithms/odometry.hpp"
 #include "atum8/sensors/vision.hpp"
 #include "main.h"
 //#include "atum8\autonSelector.hpp"

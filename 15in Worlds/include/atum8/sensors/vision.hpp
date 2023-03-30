@@ -13,7 +13,7 @@
 #include "main.h"
 #include "atum8/globals.hpp"
 #include "atum8/systems/drive.hpp"
-#include "atum8/controllers/pid.hpp"
+#include "atum8/algorithms/pid.hpp"
 
 namespace atum8{
     class Vision : Drive{

@@ -11,8 +11,8 @@
 
 #pragma once
 #include "main.h"
-#include "globals.hpp"
-#include "atum8/task.hpp"
+#include "atum8/globals.hpp"
+#include "atum8/misc/task.hpp"
 
 namespace atum8{
     class Odometry : public Task{
