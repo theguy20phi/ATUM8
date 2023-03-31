@@ -6,8 +6,6 @@
 namespace atum8 {
 Pid linearController(800, 1, 8.8, .5, .05);
 Pid turnController(270, 0.8, 0, 1, .05);
-Pid linearMTPController(800, 0, 0, 0.5, 0.05);
-Pid turnMTPController(270, 0.8, 0, 1, .05);
 
 void Drive::taskFn() {
   while(true) {
@@ -29,110 +27,6 @@ void Drive::controller() {
 
 double rpmToPower(double rpm) { return (rpm * 12000) / 200; };
 
-int sgn(double num){
-  return (num < 0) ? -1 : ((num > 0) ? 1 : 0); // Returns -1 if num is negative, and 1 if num is HIV positive.
-}
-
-int16_t radian_to_degrees_converter(const double angle) { return angle * 180 / M_PI; } // convert radian to degrees
-int16_t degrees_to_radians_converter(const double angle){ return angle * M_PI / 180; } // Convert degrees to radian
-
-double Drive::findMinAngle(const double targetHeading, const double currentHeading){
-  double turnAngle = targetHeading - globalHeadingInDegrees;
-  if (turnAngle > 180 || turnAngle < -180){ turnAngle = turnAngle - (sgn(turnAngle) * 360); }
-  return turnAngle;
-}
-
-void Drive::move_to_reference_pose(const double targetX, const double targetY, const double targetHeading, const double radius){
-  double turnError = 0;
-  double termError = 0;
-  while (true){
-    double abstargetAngle = atan2f(targetX - globalX, targetY - globalY) * 180 / M_PI;
-    if (abstargetAngle < 0){ abstargetAngle += 360; }
-
-    double distance = sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2));
-    double alpha = findMinAngle(abstargetAngle, targetHeading);
-    double t_error = findMinAngle(abstargetAngle, globalHeadingInDegrees);
-    double beta = atan(radius / distance) * 180 / M_PI;
-
-    if (alpha < 0){ beta = -beta;}
-    if (fabs(alpha) < fabs(beta)){ turnError = termError + alpha; }
-    else{ turnError = termError + beta; }
-
-    if (turnError > 180 || turnError < -180){ turnError = turnError - (sgn(turnError) * 360); }
-
-    double linearVel = 3 * distance;
-    double turnVel = 3 * turnError;
-    double closetoTarget = false;
-
-    if (distance < 2){ closetoTarget = true;}
-    if (closetoTarget){
-      linearVel = 3 * distance * sgn(cos(turnError * M_PI / 180));
-      turnError = findMinAngle(targetHeading, globalHeadingInDegrees);
-      turnVel = 2 * atan(tan(turnError * M_PI / 180)) * 180 / M_PI;
-    }
-
-    int16_t left_volage = linearVel + turnVel;
-    int16_t right_voltage = linearVel - turnVel;
-    int16_t linError_f = sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2));
-
-    globalRightPower = right_voltage * (12000.0 / 127);
-    globalLeftPower = left_volage * (12000.0) / 127;
-
-    setLeftPower(left_volage * (12000.0) / 127);
-    setRightPower(right_voltage * (12000.0 / 127));
-
-    pros::delay(10);
-  }
-}
-
-
-void Drive::moveToReference(const double targetX, const double targetY, const double targetHeading, const double radiusOfArc, const double rpm, const double acceleration, const double secThreshold) {
-  double linearMTPkP {100};
-  double turnMTPkP { 100 };
-  double closeTollerance { 1 };
-  double targetFinalTollerance { 0.1 };
-  bool closeToTarget{ false };
-
-  while(true) {
-    globalRightPower = 3;
-    absTargetAngle = atan2f(targetX - globalX, targetY - globalY) * 180 / M_PI;
-    if(absTargetAngle < 0)
-      absTargetAngle += 360;
-    distance = sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2));
-    alpha = findMinAngle(absTargetAngle, targetHeading);
-    errorTerm = findMinAngle(absTargetAngle, globalHeadingInDegrees);
-    beta = atan(radiusOfArc / distance) * 180 / M_PI;
-
-    if(alpha < 0)
-      beta = -beta;
-    if(fabs(alpha) < fabs(beta))
-      turnError = errorTerm + alpha;
-    else
-      turnError = errorTerm + beta;
-
-    if(turnError > 180 || turnError < -180)
-      turnError = turnError - sgn(turnError) * 360;
-    
-    linearVelocity = linearMTPkP * distance * sgn(cos(turnError * M_PI / 180));
-    turnVelocity = turnMTPkP * turnError;
-
-    if(distance < closeTollerance) 
-      closeToTarget = true;
-    if(closeToTarget) {
-      linearVelocity = linearMTPkP * distance * sgn(cos(turnError * M_PI / 180));
-      turnError = findMinAngle(targetHeading, globalHeadingInDegrees);
-      turnVelocity = turnMTPkP * atan(tan(turnError * M_PI / 180)) * 180 / M_PI;
-
-      setRightPower((linearVelocity + turnVelocity) * 12000 / 127);
-      setLeftPower((linearVelocity - turnVelocity) * 12000 / 127);
-
-      //if (fabs(sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2))) < closeTollerance) 
-        //break; 
-    }
-    pros::delay(10);
-  }
-}
-
 void Drive::movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold) {
   reset();
   linearController.setMaxOutput(rpmToPower(rpm));
@@ -142,6 +36,7 @@ void Drive::movePID(const double inches, const double rpm, const double accelera
 
     setRightPower(SlewRate::getOutput(getRightPower(), power, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
+    
 
     if (linearController.isSettled())
       break;
