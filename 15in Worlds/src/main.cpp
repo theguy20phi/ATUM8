@@ -1,5 +1,6 @@
 #include "main.h"
 #include "atum8/algorithms/odometry.hpp"
+#include "atum8/sensors/imus.hpp"
 #include "atum8/sensors/vision.hpp"
 #include "main.h"
 //#include "atum8\autonSelector.hpp"
@@ -16,26 +17,15 @@
 atum8::Drive drive;
 atum8::Intake intake;
 atum8::Odometry odometry;
+atum8::Imus imus;
 
 void initialize() {
   pros::lcd::initialize();
   pros::lcd::set_background_color(0, 0, 0);
   pros::lcd::set_text_color(255, 255, 255);
-
-  // Enable Optical Sensors
-  //atum8::opticalSensor.set_led_pwm(100);
-  //atum8::opticalSensor.disable_gesture();
-
-  // Calibrate Inertial Sensors
-  //atum8::imuSensorAlpha.reset();
-  //atum8::imuSensorBeta.reset();
-  //atum8::imuSensorCharlie.reset();
-  // while (atum8::imuSensorAlpha.is_calibrating() ||
-  //        atum8::imuSensorBeta.is_calibrating() ||
-  //        atum8::imuSensorCharlie.is_calibrating()) {
-  //   pros::lcd::set_text(1, "IMUs ARE CALIBRATING DON'T TOUCH!!!");
-  //   pros::delay(100);
-  // }
+  imus.calibrateImuSensors();
+  atum8::opticalSensor.set_led_pwm(100);
+  atum8::opticalSensor.disable_gesture();
 }
 
 void disabled() {
@@ -50,7 +40,6 @@ void autonomous() {
 void opcontrol() {
   odometry.setStartingPosition(0, 0, 0);
   odometry.start();
-  drive.move_to_reference_pose(24, 24, 0, 12);
   //drive.start();
   //intake.start();
   //drive.stop();
