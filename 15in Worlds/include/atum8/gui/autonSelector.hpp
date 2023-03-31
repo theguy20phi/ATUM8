@@ -10,7 +10,7 @@
  */
 
 #pragma once
-#include "globals.hpp"
+#include "atum8/globals.hpp"
 #include "main.h"
 
 namespace atum8 {

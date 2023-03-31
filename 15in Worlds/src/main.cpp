@@ -2,7 +2,7 @@
 #include "atum8/algorithms/odometry.hpp"
 #include "atum8/sensors/imus.hpp"
 #include "atum8/sensors/vision.hpp"
-//#include "atum8\autonSelector.hpp"
+#include "atum8/gui/autonSelector.hpp"
 #include "atum8\systems\catapult.hpp"
 #include "atum8\systems\drive.hpp"
 #include "atum8\systems\endGame.hpp"

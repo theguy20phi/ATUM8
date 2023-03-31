@@ -1,4 +1,4 @@
-#include "atum8/autonSelector.hpp"
+#include "atum8/gui/autonSelector.hpp"
 #include "main.h"
 
 namespace atum8 {
