@@ -6,17 +6,6 @@ namespace atum8 {
     void Odometry::taskFn() {
         while(true) {
             trackPosition();
-            std::string xString = "X: " + std::to_string(globalX) + " Inches";
-            std::string yString = "Y: " + std::to_string(globalY) + " Inches";
-            std::string globalHeadingInDegreesString = "Heading: " + std::to_string(globalHeadingInDegrees) + " Degrees";
-            std::string globalRightPowerString = "Right Power:  " + std::to_string(globalRightPower) + " yup";
-            std::string globalLeftPowerString = "Left Power: " + std::to_string(globalLeftPower) + " V";
-
-            pros::lcd::set_text(1, xString);
-            pros::lcd::set_text(2, yString);
-            pros::lcd::set_text(3, globalHeadingInDegreesString);
-            pros::lcd::set_text(4, globalRightPowerString);
-            pros::lcd::set_text(5, globalLeftPowerString);
             pros::delay(10);
         }
     }
