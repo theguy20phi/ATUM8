@@ -23,6 +23,7 @@ class Drive : Pid, SlewRate, Imus, public Task {
 public:
   void taskFn();
   void controller();
+  void move_to_reference_pose(const double targetX, const double targetY, const double targetHeading, const double radius);
   void moveToReference(const double targetX, const double targetY, const double targetHeading, const double radiusOfArc, const double rpm, const double acceleration, const double secThreshold);
   void movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold);
   void turnPID(const double angle, const double rpm, const double acceleration, const double secThreshold);

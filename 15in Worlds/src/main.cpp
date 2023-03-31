@@ -45,13 +45,12 @@ void competition_initialize() {
 }
 
 void autonomous() {
-
 }
 
 void opcontrol() {
   odometry.setStartingPosition(0, 0, 0);
   odometry.start();
-  drive.moveToReference(10, 10, 0, 50, 60, 60);
+  drive.move_to_reference_pose(24, 24, 0, 12);
   //drive.start();
   //intake.start();
   //drive.stop();

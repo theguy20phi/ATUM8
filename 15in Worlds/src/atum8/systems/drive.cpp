@@ -42,17 +42,59 @@ double Drive::findMinAngle(const double targetHeading, const double currentHeadi
   return turnAngle;
 }
 
+void Drive::move_to_reference_pose(const double targetX, const double targetY, const double targetHeading, const double radius){
+  double turnError = 0;
+  double termError = 0;
+  while (true){
+    double abstargetAngle = atan2f(targetX - globalX, targetY - globalY) * 180 / M_PI;
+    if (abstargetAngle < 0){ abstargetAngle += 360; }
 
+    double distance = sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2));
+    double alpha = findMinAngle(abstargetAngle, targetHeading);
+    double t_error = findMinAngle(abstargetAngle, globalHeadingInDegrees);
+    double beta = atan(radius / distance) * 180 / M_PI;
+
+    if (alpha < 0){ beta = -beta;}
+    if (fabs(alpha) < fabs(beta)){ turnError = termError + alpha; }
+    else{ turnError = termError + beta; }
+
+    if (turnError > 180 || turnError < -180){ turnError = turnError - (sgn(turnError) * 360); }
+
+    double linearVel = 3 * distance;
+    double turnVel = 3 * turnError;
+    double closetoTarget = false;
+
+    if (distance < 2){ closetoTarget = true;}
+    if (closetoTarget){
+      linearVel = 3 * distance * sgn(cos(turnError * M_PI / 180));
+      turnError = findMinAngle(targetHeading, globalHeadingInDegrees);
+      turnVel = 2 * atan(tan(turnError * M_PI / 180)) * 180 / M_PI;
+    }
+
+    int16_t left_volage = linearVel + turnVel;
+    int16_t right_voltage = linearVel - turnVel;
+    int16_t linError_f = sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2));
+
+    globalRightPower = right_voltage * (12000.0 / 127);
+    globalLeftPower = left_volage * (12000.0) / 127;
+
+    setLeftPower(left_volage * (12000.0) / 127);
+    setRightPower(right_voltage * (12000.0 / 127));
+
+    pros::delay(10);
+  }
+}
 
 
 void Drive::moveToReference(const double targetX, const double targetY, const double targetHeading, const double radiusOfArc, const double rpm, const double acceleration, const double secThreshold) {
-  double linearMTPkP {10};
-  double turnMTPkP { 10 };
+  double linearMTPkP {100};
+  double turnMTPkP { 100 };
   double closeTollerance { 1 };
   double targetFinalTollerance { 0.1 };
   bool closeToTarget{ false };
 
   while(true) {
+    globalRightPower = 3;
     absTargetAngle = atan2f(targetX - globalX, targetY - globalY) * 180 / M_PI;
     if(absTargetAngle < 0)
       absTargetAngle += 360;
@@ -84,10 +126,10 @@ void Drive::moveToReference(const double targetX, const double targetY, const do
       setRightPower((linearVelocity + turnVelocity) * 12000 / 127);
       setLeftPower((linearVelocity - turnVelocity) * 12000 / 127);
 
-      if (fabs(sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2))) < closeTollerance) 
-        break; 
+      //if (fabs(sqrt(pow(targetX - globalX, 2) + pow(targetY - globalY, 2))) < closeTollerance) 
+        //break; 
     }
-
+    pros::delay(10);
   }
 }
 

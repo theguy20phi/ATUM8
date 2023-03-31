@@ -50,5 +50,7 @@ double globalX;
 double globalY;
 double globalHeadingInRadians;
 double globalHeadingInDegrees;
+double globalRightPower;
+double globalLeftPower;
 
 } // namespace atum8
