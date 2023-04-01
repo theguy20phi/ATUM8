@@ -11,11 +11,13 @@
 
 #pragma once
 #include "atum8/globals.hpp"
+#include "atum8/misc/task.hpp"
 #include "main.h"
 
 namespace atum8 {
-class EndGame {
+class EndGame : public Task {
 public:
+  void taskFn();
   void controller();
   void shoot();
   void retract();

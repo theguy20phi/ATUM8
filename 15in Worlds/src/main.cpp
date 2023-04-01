@@ -10,7 +10,9 @@
 #include "atum8\systems\intake.hpp"
 
 atum8::Drive drive;
+atum8::Catapult catapult;
 atum8::Intake intake;
+atum8::EndGame endgame;
 atum8::Odometry odometry;
 atum8::Imus imus;
 
@@ -18,7 +20,7 @@ void initialize() {
   pros::lcd::initialize();
   pros::lcd::set_background_color(0, 0, 0);
   pros::lcd::set_text_color(255, 255, 255);
-  imus.calibrateImuSensors();
+  //imus.calibrateImuSensors();
   atum8::opticalSensor.set_led_pwm(100);
   atum8::opticalSensor.disable_gesture();
 }
@@ -35,4 +37,8 @@ void autonomous() {
 void opcontrol() {
   odometry.setStartingPosition(0, 0, 0);
   odometry.start();
+  drive.start();
+  catapult.start();
+  intake.start();
+  endgame.start();
 }

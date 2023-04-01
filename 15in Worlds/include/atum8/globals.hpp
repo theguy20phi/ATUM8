@@ -18,25 +18,31 @@
 namespace atum8 {
 // Robot Setup
 extern pros::Controller Chris;
-extern pros::Motor rightFrontDrive;
-extern pros::Motor rightMiddleDrive;
+extern pros::Motor rightFrontTopDrive;
+extern pros::Motor rightFrontBotDrive;
 extern pros::Motor rightBackDrive;
-extern pros::Motor leftFrontDrive;
-extern pros::Motor leftMiddleDrive;
+extern pros::Motor leftFrontTopDrive;
+extern pros::Motor leftFrontBotDrive;
 extern pros::Motor leftBackDrive;
+
 extern pros::Motor rightCatapultMotor;
 extern pros::Motor leftCatapultMotor;
+
 extern pros::Motor leftIntakeMotor;
 extern pros::Motor rightIntakeMotor;
+
 extern pros::Motor_Group leftDriveMotors;
 extern pros::Motor_Group rightDriveMotors;
 extern pros::Motor_Group driveMotors;
+
 extern pros::Motor_Group catapultMotors;
 extern pros::Motor_Group intakeMotors;
-extern pros::ADIDigitalIn catapultStop;
+
+extern pros::ADIDigitalIn guiTOggle;
 extern pros::Imu imuSensorAlpha;
 extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
+extern pros::Rotation rotationSensor;
 extern pros::Optical opticalSensor;
 extern pros::Vision visionSensor;
 extern pros::ADIDigitalOut endGame;
@@ -54,6 +60,4 @@ extern double globalX;
 extern double globalY;
 extern double globalHeadingInRadians;
 extern double globalHeadingInDegrees;
-extern double globalRightPower;
-extern double globalLeftPower;
 } // namespace atum8

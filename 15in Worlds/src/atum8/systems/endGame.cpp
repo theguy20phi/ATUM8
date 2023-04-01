@@ -2,6 +2,12 @@
 #include "main.h"
 
 namespace atum8 {
+void EndGame::taskFn() {
+  while(true) {
+    controller();
+    pros::delay(10);
+  }
+}
 void EndGame::controller() { 
     if (Chris.get_digital(DIGITAL_UP))
         shoot();

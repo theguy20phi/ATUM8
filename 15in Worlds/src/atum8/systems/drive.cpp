@@ -16,12 +16,12 @@ void Drive::taskFn() {
 
 void Drive::controller() {
   setDriveBrakeMode("COAST");
-  rightFrontDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  rightMiddleDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
+  rightFrontTopDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
+  rightFrontBotDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
   rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
 
-  leftFrontDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  leftMiddleDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  leftFrontTopDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  leftFrontBotDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
   leftBackDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
 };
 
@@ -70,71 +70,71 @@ void Drive::turnPID(const double angle, const double rpm, const double accelerat
 }
 
 void Drive::setRightPower(double power) {
-  rightFrontDrive.move_voltage(power);
-  rightMiddleDrive.move_voltage(power);
+  rightFrontTopDrive.move_voltage(power);
+  rightFrontBotDrive.move_voltage(power);
   rightBackDrive.move_voltage(power);
 }
 
 void Drive::setLeftPower(double power) {
-  leftFrontDrive.move_voltage(power);
-  leftMiddleDrive.move_voltage(power);
+  leftFrontTopDrive.move_voltage(power);
+  leftFrontBotDrive.move_voltage(power);
   leftBackDrive.move_voltage(power);
 }
 
 double Drive::getRightPower() {
-  return ((rightFrontDrive.get_voltage() + rightMiddleDrive.get_voltage() +
+  return ((rightFrontTopDrive.get_voltage() + rightFrontBotDrive.get_voltage() +
            rightBackDrive.get_voltage()) /
           3);
 }
 
 double Drive::getLeftPower() {
-  return ((leftFrontDrive.get_voltage() + leftMiddleDrive.get_voltage() +
+  return ((leftFrontTopDrive.get_voltage() + leftFrontBotDrive.get_voltage() +
            leftBackDrive.get_voltage()) /
           3);
 }
 
 void Drive::setDriveBrakeMode(const std::string brakeMode) {
   if (brakeMode == "COAST") {
-    rightFrontDrive.set_brake_mode(MOTOR_BRAKE_COAST);
-    rightMiddleDrive.set_brake_mode(MOTOR_BRAKE_COAST);
+    rightFrontTopDrive.set_brake_mode(MOTOR_BRAKE_COAST);
+    rightFrontBotDrive.set_brake_mode(MOTOR_BRAKE_COAST);
     rightBackDrive.set_brake_mode(MOTOR_BRAKE_COAST);
 
-    leftFrontDrive.set_brake_mode(MOTOR_BRAKE_COAST);
-    leftMiddleDrive.set_brake_mode(MOTOR_BRAKE_COAST);
+    leftFrontTopDrive.set_brake_mode(MOTOR_BRAKE_COAST);
+    leftFrontBotDrive.set_brake_mode(MOTOR_BRAKE_COAST);
     leftBackDrive.set_brake_mode(MOTOR_BRAKE_COAST);
   }
 
   if (brakeMode == "BRAKE") {
-    rightFrontDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
-    rightMiddleDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
+    rightFrontTopDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
+    rightFrontBotDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
     rightBackDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
 
-    leftFrontDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
-    leftMiddleDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
+    leftFrontTopDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
+    leftFrontBotDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
     leftBackDrive.set_brake_mode(MOTOR_BRAKE_BRAKE);
   }
 
   if (brakeMode == "HOLD") {
-    rightFrontDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
-    rightMiddleDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
+    rightFrontTopDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
+    rightFrontBotDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
     rightBackDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
 
-    leftFrontDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
-    leftMiddleDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
+    leftFrontTopDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
+    leftFrontBotDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
     leftBackDrive.set_brake_mode(MOTOR_BRAKE_HOLD);
   }
 }
 
 double Drive::getRightEncoderValues() {
   return ((driveGearRatio) * // drive gear ratio
-          ((rightFrontDrive.get_position() + rightMiddleDrive.get_position() +
+          ((rightFrontTopDrive.get_position() + rightFrontBotDrive.get_position() +
             rightBackDrive.get_position())) /
           3);
 }
 
 double Drive::getLeftEncoderValues() {
   return ((driveGearRatio) * // drive gear ratio
-          ((leftFrontDrive.get_position() + leftMiddleDrive.get_position() +
+          ((leftFrontTopDrive.get_position() + leftFrontBotDrive.get_position() +
             leftBackDrive.get_position())) /
           3);
 }
@@ -144,12 +144,12 @@ double Drive::getEncoderAverages() {
 }
 
 void Drive::resetEncoders() {
-  rightFrontDrive.tare_position();
-  rightMiddleDrive.tare_position();
+  rightFrontTopDrive.tare_position();
+  rightFrontBotDrive.tare_position();
   rightBackDrive.tare_position();
 
-  leftFrontDrive.tare_position();
-  leftMiddleDrive.tare_position();
+  leftFrontTopDrive.tare_position();
+  leftFrontBotDrive.tare_position();
   leftBackDrive.tare_position();
 }
 

@@ -14,7 +14,7 @@
 #include "main.h"
 
 namespace atum8 {
-    class Catapult : Task {
+    class Catapult : public Task {
     public:
     void taskFn();
     void controller();
