@@ -2,8 +2,8 @@
  * @file intake.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for the intake subsystem.
- * @version 0.1
- * @date 2023-03-29
+ * @version 0.2
+ * @date 2023-04-01
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -18,6 +18,11 @@ namespace atum8 {
     public:
     void taskFn();
     void controller();
+    void diskControlls();
+    void rollerControlls();
     private:
+    static int buttonDuration;
+    const short int longPress{250};
+    bool isDiskMode{ true };
 };
 }

@@ -1,5 +1,6 @@
 #include "atum8/systems/catapult.hpp"
 #include "main.h"
+#include "pros/misc.h"
 
 namespace atum8 {
     void Catapult::taskFn() {
@@ -11,6 +12,29 @@ namespace atum8 {
     }
 
     void Catapult::controller(){
+        if(Chris.get_digital_new_press(DIGITAL_X))
+            isManualMode = !isManualMode;
+        if(Chris.get_digital_new_press(DIGITAL_Y))
+            rotationSensor.set_position(90);
+        if(isManualMode == false)
+            automaticContolls();
+        else
+            manualControlls();
+
+    }
+
+    void Catapult::automaticContolls(){
+        if(rotationSensor.get_position() > 0)
+            catapultMotors.move_voltage(12000);
+        else {
+            if(Chris.get_digital(DIGITAL_R1))
+                catapultMotors.move_voltage(12000);
+            else
+                catapultMotors.move_voltage(0);
+        }   
+    }
+
+    void Catapult::manualControlls(){
         if(Chris.get_digital(DIGITAL_R1))
             catapultMotors.move_voltage(12000);
         else if(Chris.get_digital(DIGITAL_R2))

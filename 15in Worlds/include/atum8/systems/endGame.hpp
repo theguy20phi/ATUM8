@@ -2,8 +2,8 @@
  * @file endGame.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides a class for all of the end game methods. 
- * @version 0.1
- * @date 2023-03-30
+ * @version 0.2
+ * @date 2023-04-01
  *
  * @copyright Copyright (c) 2023
  *

@@ -1,5 +1,6 @@
 #include "atum8/systems/endGame.hpp"
 #include "main.h"
+#include "pros/misc.h"
 
 namespace atum8 {
 void EndGame::taskFn() {
@@ -9,9 +10,9 @@ void EndGame::taskFn() {
   }
 }
 void EndGame::controller() { 
-    if (Chris.get_digital(DIGITAL_UP))
+    if (Chris.get_digital(DIGITAL_DOWN) and Chris.get_digital(DIGITAL_B))
         shoot();
-    else if(Chris.get_digital(DIGITAL_DOWN))
+    else if(Chris.get_digital(DIGITAL_DOWN) or Chris.get_digital(DIGITAL_B))
         retract();
 }
 
