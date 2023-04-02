@@ -7,6 +7,9 @@ namespace atum8 {
         catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
         while(true) {
             controller();
+            std::cout << "rotation: " << rotationSensor.get_position() << std::endl;
+            std::cout << "angle: " << rotationSensor.get_angle() << std::endl;
+
             pros::delay(10);
         }
     }
@@ -14,8 +17,7 @@ namespace atum8 {
     void Catapult::controller(){
         if(Chris.get_digital_new_press(DIGITAL_X))
             isManualMode = !isManualMode;
-        if(Chris.get_digital_new_press(DIGITAL_Y))
-            rotationSensor.set_position(90);
+
         if(isManualMode == false)
             automaticContolls();
         else
@@ -24,7 +26,7 @@ namespace atum8 {
     }
 
     void Catapult::automaticContolls(){
-        if(rotationSensor.get_position() > 0)
+        if(rotationSensor.get_position() > 110)
             catapultMotors.move_voltage(12000);
         else {
             if(Chris.get_digital(DIGITAL_R1))

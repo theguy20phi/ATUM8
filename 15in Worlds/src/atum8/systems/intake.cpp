@@ -23,6 +23,7 @@ void Intake::controller() {
 }
 
 void Intake::diskControlls() {
+  static int buttonDuration;
   if (Chris.get_digital(DIGITAL_L1)) {
     intakeMotors.move_voltage(12000);
     buttonDuration = 0;

@@ -36,6 +36,7 @@ void autonomous() {
 }
 
 void opcontrol() {
+  pros::delay(200);
   odometry.setStartingPosition(0, 0, 0);
   odometry.start();
   drive.start();

@@ -21,7 +21,6 @@ namespace atum8 {
     void diskControlls();
     void rollerControlls();
     private:
-    static int buttonDuration;
     const short int longPress{250};
     bool isDiskMode{ true };
 };
