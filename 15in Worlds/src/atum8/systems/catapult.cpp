@@ -26,7 +26,7 @@ namespace atum8 {
     }
 
     void Catapult::automaticContolls(){
-        if(rotationSensor.get_position() > 110)
+        if(rotationSensor.get_position() > 420)
             catapultMotors.move_voltage(12000);
         else {
             if(Chris.get_digital(DIGITAL_R1))
