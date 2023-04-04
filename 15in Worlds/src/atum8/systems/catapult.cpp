@@ -8,7 +8,8 @@ namespace atum8 {
         while(true) {
             controller();
             std::cout << "rotation: " << rotationSensor.get_position() << std::endl;
-            std::cout << "angle: " << rotationSensor.get_angle() << std::endl;
+            //std::cout << "angle: " << rotationSensor.get_angle() << std::endl;
+            std::cout << "very cool: " << 9.5 * rotationSensor.get_position() - 100 << std::endl;
 
             pros::delay(10);
         }
@@ -26,8 +27,13 @@ namespace atum8 {
     }
 
     void Catapult::automaticContolls(){
-        if(rotationSensor.get_position() > 420)
-            catapultMotors.move_voltage(12000);
+        if(rotationSensor.get_position() > 300) {//420
+            if(rotationSensor.get_position() > 600)
+                catapultMotors.move_voltage(12000);
+            else
+              catapultMotors.move_voltage(9.5 * rotationSensor.get_position() - 100);
+
+        }
         else {
             if(Chris.get_digital(DIGITAL_R1))
                 catapultMotors.move_voltage(12000);

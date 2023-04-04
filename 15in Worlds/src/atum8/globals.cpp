@@ -9,18 +9,18 @@ namespace atum8 {
 pros::Controller Chris(CONTROLLER_MASTER);
 
 // Setup Motors
-pros::Motor rightFrontTopDrive(13, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);
-pros::Motor rightFrontBotDrive(12, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);
-pros::Motor rightBackDrive(11, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);
+pros::Motor rightFrontTopDrive(10, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);//13
+pros::Motor rightFrontBotDrive(12, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);//12
+pros::Motor rightBackDrive(20, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);//11
 
-pros::Motor leftFrontTopDrive(17, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);
-pros::Motor leftFrontBotDrive(16, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);
-pros::Motor leftBackDrive(15, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);
+pros::Motor leftFrontTopDrive(1, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);//17
+pros::Motor leftFrontBotDrive(16, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);//16
+pros::Motor leftBackDrive(11, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);//15
 
 pros::Motor rightCatapultMotor(18, pros::E_MOTOR_GEAR_RED, true, MOTOR_ENCODER_DEGREES);
 pros::Motor leftCatapultMotor(19, pros::E_MOTOR_GEAR_RED, false, MOTOR_ENCODER_DEGREES);
 
-pros::Motor rightIntakeMotor(1, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);
+pros::Motor rightIntakeMotor(14, pros::E_MOTOR_GEAR_GREEN, true, MOTOR_ENCODER_DEGREES);//1
 pros::Motor leftIntakeMotor(2, pros::E_MOTOR_GEAR_GREEN, false, MOTOR_ENCODER_DEGREES);
 
 // Setup Motor Groups

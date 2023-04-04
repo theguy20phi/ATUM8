@@ -8,6 +8,7 @@
 #include "atum8\systems\endGame.hpp"
 #include "atum8\globals.hpp"
 #include "atum8\systems\intake.hpp"
+#include "atum8/gui/debugger.hpp"
 
 atum8::Drive drive;
 atum8::Catapult catapult;
@@ -15,6 +16,7 @@ atum8::Intake intake;
 atum8::EndGame endgame;
 atum8::Odometry odometry;
 atum8::Imus imus;
+atum8::Debugger debugger;
 
 void initialize() {
   pros::lcd::initialize();
@@ -24,6 +26,7 @@ void initialize() {
   atum8::opticalSensor.set_led_pwm(100);
   atum8::opticalSensor.disable_gesture();
   atum8::rotationSensor.set_data_rate(5);
+  odometry.setStartingPosition(0, 0, 0);
 }
 
 void disabled() {
@@ -33,12 +36,13 @@ void competition_initialize() {
 }
 
 void autonomous() {
+  odometry.start();
+  debugger.start();
+  drive.moveToPoint(24, 24, 0, 200, 200, 60);
 }
 
 void opcontrol() {
   pros::delay(200);
-  odometry.setStartingPosition(0, 0, 0);
-  odometry.start();
   drive.start();
   catapult.start();
   intake.start();

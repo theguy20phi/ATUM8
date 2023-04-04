@@ -9,7 +9,7 @@ void Debugger::taskFn() {
   }
 }
 
-void displayCoordinates() {
+void Debugger::displayCoordinates() {
   std::string xString = "X: " + std::to_string(globalX) + " Inches";
   std::string yString = "Y: " + std::to_string(globalY) + " Inches";
   std::string globalHeadingInDegreesString = "Heading: " + std::to_string(globalHeadingInDegrees) + " Degrees";

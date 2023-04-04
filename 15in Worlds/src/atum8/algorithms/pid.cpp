@@ -39,6 +39,28 @@ double Pid::getOutput(double current, double desired) {
   return output;
 }
 
+double Pid::getOutput(double error) {
+  // Calculuate Integral Value
+  newIntegral = integral + error;
+
+  // Calculate Derivative Value and Update Error
+  derivative = error - prevError;
+  prevError = error;
+
+  // Calculuate Ouput
+  output = error * kP + integral * kI + derivative * kD;
+
+  // Output Clamping and Anti-Integral Wind-up
+  if (output > maxOutput)
+    output = maxOutput;
+  else if (output < -maxOutput)
+    output = -maxOutput;
+  else
+    integral = newIntegral;
+
+  return output;
+}
+
 void Pid::setMaxOutput(double output) { maxOutput = output; }
 
 bool Pid::isSettled(){
