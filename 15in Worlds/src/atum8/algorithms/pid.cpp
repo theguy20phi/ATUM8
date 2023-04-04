@@ -50,14 +50,6 @@ double Pid::getOutput(double error) {
   // Calculuate Ouput
   output = error * kP + integral * kI + derivative * kD;
 
-  // Output Clamping and Anti-Integral Wind-up
-  if (output > maxOutput)
-    output = maxOutput;
-  else if (output < -maxOutput)
-    output = -maxOutput;
-  else
-    integral = newIntegral;
-
   return output;
 }
 

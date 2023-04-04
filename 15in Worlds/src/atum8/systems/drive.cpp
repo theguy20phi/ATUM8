@@ -1,6 +1,7 @@
 #include "atum8/systems/drive.hpp"
 #include <cmath>
 #include <math.h>
+#include "atum8/misc/utility.hpp"
 #include "main.h"
 
 namespace atum8 {
@@ -119,14 +120,17 @@ void Drive::moveToReference(const double desiredX, const double desiredY, const 
     double distanceError = hypot(errorX, errorY);
     double headingError = utility::reduce_negative_180_to_180(90 - atan2(errorY, errorX) - globalHeadingInDegrees);
 
-    double distancePower = coordinateController.getOutput(distanceError);
-    double headingPower = headingController.getOutput(headingError);
-
     if(distanceError < 2)
-      headingPower = 0;
+      headingError = 0;
 
-    setRightPower(distancePower - headingPower);
-    setLeftPower(distancePower + headingPower);
+    double lateralPower = coordinateController.getOutput(distanceError);
+    lateralPower = utility::clamp(lateralPower, -12000, 12000);
+    lateralPower *= abs(cos(utility::convertDegreeToRadian(headingError)));
+    double headingPower = headingController.getOutput(headingError);
+    headingPower = utility::clamp(headingPower, -6000, 6000);
+
+    setRightPower(lateralPower - headingPower);
+    setLeftPower(lateralPower + headingPower);
 
     pros::delay(10);
   }
