@@ -122,17 +122,15 @@ void Drive::moveToReference(const double desiredX, const double desiredY, const 
     double distancePower = coordinateController.getOutput(distanceError);
     double headingPower = headingController.getOutput(headingError);
 
-    distancePower = utility::clamp(distancePower, -12000, 12000);
-    headingPower = utility::clamp(headingPower, -6000, 6000);
+    if(distanceError < 2)
+      headingPower = 0;
 
     setRightPower(distancePower - headingPower);
     setLeftPower(distancePower + headingPower);
 
     pros::delay(10);
   }
-  setLeftPower(0);
-  setRightPower(0);
-  //reset();
+  reset();
 }
 
 void Drive::setRightPower(double power) {
