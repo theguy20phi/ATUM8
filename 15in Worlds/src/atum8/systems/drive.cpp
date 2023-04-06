@@ -83,10 +83,11 @@ void Drive::moveToPoint(const double desiredX, const double desiredY, const doub
   headingController.setMaxOutput(headingMaxPower);
 
   while(true) {
+    
     double errorX = desiredX - globalX;
     double errorY = desiredY - globalY;
     double coordinateError = hypot(errorX, errorY);
-    double headingError = utility::reduce_negative_180_to_180(utility::convertRadianToDegree(atan2(errorX, errorY))-globalHeadingInDegrees);
+    double headingError = utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY))-globalHeadingInDegrees);
     double coordinatePower = coordinateController.getOutput(coordinateError);
 
     double headingScaleFactor = cos(utility::convertDegreeToRadian(headingError));
@@ -108,17 +109,18 @@ void Drive::moveToPoint(const double desiredX, const double desiredY, const doub
   reset();
 }
 
-void Drive::moveToReference(const double desiredX, const double desiredY, const double desiredHeading) {
+void Drive::moveToReference(const double desiredX, const double desiredY){
   coordinateController.reset();
   headingController.reset();
   coordinateController.setMaxOutput(12000);
   headingController.setMaxOutput(6000);
-  reset();
+  setRightPower(0);
+  setLeftPower(0);
   while(true) {
     double errorX = desiredX - globalX;
     double errorY = desiredY - globalY;
     double distanceError = hypot(errorX, errorY);
-    double headingError = utility::reduce_negative_180_to_180(90 - atan2(errorY, errorX) - globalHeadingInDegrees);
+    double headingError = utility::constrain180(90 - atan2(errorY, errorX) - globalHeadingInDegrees);
 
     if(distanceError < 2)
       headingError = 0;
@@ -129,12 +131,14 @@ void Drive::moveToReference(const double desiredX, const double desiredY, const 
     double headingPower = headingController.getOutput(headingError);
     headingPower = utility::clamp(headingPower, -6000, 6000);
 
+    if(coordinateController.isSettled() and headingController.isSettled())
+      break;
+
     setRightPower(lateralPower - headingPower);
     setLeftPower(lateralPower + headingPower);
 
     pros::delay(10);
   }
-  reset();
 }
 
 void Drive::setRightPower(double power) {

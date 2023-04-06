@@ -28,7 +28,7 @@ public:
   void movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold);
   void turnPID(const double angle, const double rpm, const double acceleration, const double secThreshold);
   void moveToPoint(const double desiredX, const double desiredY, const double desiredHeading, const double coordinateRpm, const double headingRpm, const double secThreshold);
-  void moveToReference(const double desiredX, const double desiredY, const double desiredHeading);
+  void moveToReference(const double desiredX, const double desiredY);
 
   double getRightPower();
   double getLeftPower();

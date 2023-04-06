@@ -11,8 +11,8 @@ double reduce_0_to_360(double angle) {
   return(angle);
 }
 
-double reduce_negative_180_to_180(double angle) {
-  while(!(angle >= -180 && angle < 180)) {
+double constrain180(double angle) {
+  while(angle < -180 || angle >= 180) {
     if( angle < -180 ) { angle += 360; }
     if(angle >= 180) { angle -= 360; }
   }
