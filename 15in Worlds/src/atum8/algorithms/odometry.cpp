@@ -52,8 +52,4 @@ namespace atum8 {
         globalY = y;
         globalHeadingInDegrees = headingInDegrees;
     }
-
-    double Odometry::getPosition() {
-        return true;//yup idk how to do this right now deal with it later me lol kek
-    }
 }

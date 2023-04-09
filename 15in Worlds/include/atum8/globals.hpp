@@ -38,13 +38,13 @@ extern pros::Motor_Group driveMotors;
 extern pros::Motor_Group catapultMotors;
 extern pros::Motor_Group intakeMotors;
 
-extern pros::ADIDigitalIn guiTOggle;
 extern pros::Imu imuSensorAlpha;
 extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
 extern pros::Rotation rotationSensor;
 extern pros::Optical opticalSensor;
 extern pros::Vision visionSensor;
+extern pros::ADIDigitalIn catapultStop;
 extern pros::ADIDigitalOut endGame;
 extern pros::ADIEncoder rightEncoder;
 extern pros::ADIEncoder leftEncoder;
@@ -60,4 +60,6 @@ extern double globalX;
 extern double globalY;
 extern double globalHeadingInRadians;
 extern double globalHeadingInDegrees;
+extern double globalLinearPower;
+extern double globalTurnPower;
 } // namespace atum8

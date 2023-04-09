@@ -38,7 +38,7 @@ void competition_initialize() {
 void autonomous() {
   odometry.start();
   debugger.start();
-  drive.moveToReference(24, 24, 0);
+  drive.moveToPoint(24, 24, 200, 200, 60);
 }
 
 void opcontrol() {

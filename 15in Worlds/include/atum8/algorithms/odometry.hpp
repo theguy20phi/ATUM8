@@ -21,13 +21,16 @@ namespace atum8{
         void taskFn();
         void trackPosition();
         void setStartingPosition(double x, double y, double headingInDegrees);
-        double getPosition();
+        double getWorldX();
+        double getWorldY();
+        double getWorldHeadingInRadians();
+        double getWorldHeadingInDegrees();
 
         private:
         double multiplier {1.0 / 2048 / 4};
-        const float sR{ 7.25 };
-        const float sL { 7.25 };
-        const float sS { 2.5 };
+        const float sR{ 6.69291 };
+        const float sL { 6.69291 };
+        const float sS { 0.905512 };
 
         double rightPosition;
         double leftPosition;
@@ -49,5 +52,10 @@ namespace atum8{
         double headingAverage;
         double deltaX;
         double deltaY;
+
+        double worldX;
+        double worldY;
+        double worldHeadingInRadians;
+        double worldHeadingInDegrees;
     };
 }

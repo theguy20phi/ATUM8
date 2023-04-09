@@ -1,4 +1,5 @@
 #include "atum8/systems/drive.hpp"
+#include <algorithm>
 #include <cmath>
 #include <math.h>
 #include "atum8/misc/utility.hpp"
@@ -7,8 +8,9 @@
 namespace atum8 {
 Pid linearController(800, 1, 8.8, 0.5, .05);
 Pid turnController(270, 0.8, 0, 1, .05);
-Pid coordinateController(800, 0, 0, 0.5, 0.05);
-Pid headingController(300, 0, 0, 1, 0.05);
+Pid linearMTPController(800, 0, 0, 0.5, .05);
+Pid turnMTPController(300, 0, 0, 1, .05);
+Pid turnTPController(100, 0, 0, 1, .05);
 
 
 void Drive::taskFn() {
@@ -35,11 +37,11 @@ void Drive::movePID(const double inches, const double rpm, const double accelera
   reset();
   linearController.setMaxOutput(utility::rpmToPower(rpm));
   while (true) {
-    power = linearController.getOutput(
+    output = linearController.getOutput(
         (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360, inches);
 
-    setRightPower(SlewRate::getOutput(getRightPower(), power, acceleration));
-    setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
+    setRightPower(SlewRate::getOutput(getRightPower(), output, acceleration));
+    setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration));
     
 
     if (linearController.isSettled())
@@ -57,10 +59,10 @@ void Drive::turnPID(const double angle, const double rpm, const double accelerat
   reset();
   turnController.setMaxOutput(utility::rpmToPower(rpm));
   while (true) {
-    power = turnController.getOutput(getImuSensorAverages(), angle);
+    output = turnController.getOutput(getImuSensorAverages(), angle);
 
-    setRightPower(SlewRate::getOutput(getRightPower(), -power, acceleration));
-    setLeftPower(SlewRate::getOutput(getLeftPower(), power, acceleration));
+    setRightPower(SlewRate::getOutput(getRightPower(), -output, acceleration));
+    setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration));
 
     if (turnController.isSettled())
       break;
@@ -73,72 +75,75 @@ void Drive::turnPID(const double angle, const double rpm, const double accelerat
   reset();
 }
 
-void Drive::moveToPoint(const double desiredX, const double desiredY, const double desiredHeading, const double coordinateRpm, const double headingRpm, const double secThreshold) {
-  coordinateController.reset();
-  headingController.reset();
+void Drive::moveToPoint(const double desiredX, const double desiredY, const double linearRpm, const double turnRpm, const double secThreshold) {
   reset();
-  double coordinateMaxPower = utility::rpmToPower(coordinateRpm);
-  double headingMaxPower = utility::rpmToPower(headingRpm);
-  coordinateController.setMaxOutput(coordinateMaxPower);
-  headingController.setMaxOutput(headingMaxPower);
+  linearMaxPower = utility::rpmToPower(linearRpm);
+  turnMaxPower = utility::rpmToPower(turnRpm);
 
   while(true) {
+    errorX = desiredX - globalX;
+    errorY = desiredY - globalY;
+
+    linearError = hypot(errorX, errorY);
+    turnError = utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY))-globalHeadingInDegrees);
+    linearOutput = linearMTPController.getOutput(linearError);
+
+    headingScaleFactor = cos(utility::convertDegreeToRadian(turnError));
+    linearOutput*=headingScaleFactor;
+    turnError = utility::constrain90(turnError);
+    turnOutput = turnMTPController.getOutput(turnError);
+
+    if (linearError < 2)
+      turnOutput = 0;
+
+    linearOutput = utility::clamp(linearOutput, -fabs(headingScaleFactor) * linearMaxPower, fabs(headingScaleFactor) * linearMaxPower);
+    turnOutput = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
+
+    if(linearMTPController.isSettled())
+      break;
+    if (msCounter / 1000 > secThreshold)
+      break;
     
-    double errorX = desiredX - globalX;
-    double errorY = desiredY - globalY;
-    double coordinateError = hypot(errorX, errorY);
-    double headingError = utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY))-globalHeadingInDegrees);
-    double coordinatePower = coordinateController.getOutput(coordinateError);
-
-    double headingScaleFactor = cos(utility::convertDegreeToRadian(headingError));
-    coordinatePower*=headingScaleFactor;
-    headingError = utility::reduce_negative_90_to_90(headingError);
-    double headingPower = headingController.getOutput(headingError);
-
-    if (coordinateError < 2)
-      headingPower = 0;
-
-    coordinatePower = utility::clamp(coordinatePower, -fabs(headingScaleFactor) * coordinateMaxPower, fabs(headingScaleFactor) * coordinateMaxPower);
-    headingPower = utility::clamp(headingPower, -headingMaxPower, headingMaxPower);
-
-    setRightPower(coordinatePower - headingPower);
-    setLeftPower(coordinatePower + headingPower);
+    setRightPower(linearOutput - turnOutput);
+    setLeftPower(linearOutput + turnOutput);
 
     pros::delay(10);
   }
   reset();
 }
 
-void Drive::moveToReference(const double desiredX, const double desiredY){
-  coordinateController.reset();
-  headingController.reset();
-  coordinateController.setMaxOutput(12000);
-  headingController.setMaxOutput(6000);
-  setRightPower(0);
-  setLeftPower(0);
+void Drive::turnToPoint(const double desiredX, const double desiredY, const double rpm, const double secThreshold) {
+  reset();
+  turnMaxPower = utility::rpmToPower(rpm);
   while(true) {
-    double errorX = desiredX - globalX;
-    double errorY = desiredY - globalY;
-    double distanceError = hypot(errorX, errorY);
-    double headingError = utility::constrain180(90 - atan2(errorY, errorX) - globalHeadingInDegrees);
+    errorX = desiredX - globalX;
+    errorY = desiredY - globalY;
+    output = turnTPController.getOutput(utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY)) - globalHeadingInDegrees));
+    output = std::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
-    if(distanceError < 2)
-      headingError = 0;
-
-    double lateralPower = coordinateController.getOutput(distanceError);
-    lateralPower = utility::clamp(lateralPower, -12000, 12000);
-    lateralPower *= abs(cos(utility::convertDegreeToRadian(headingError)));
-    double headingPower = headingController.getOutput(headingError);
-    headingPower = utility::clamp(headingPower, -6000, 6000);
-
-    if(coordinateController.isSettled() and headingController.isSettled())
+    if(turnTPController.isSettled())
+      break;
+    if (msCounter / 1000 > secThreshold)
       break;
 
-    setRightPower(lateralPower - headingPower);
-    setLeftPower(lateralPower + headingPower);
+    setRightPower(-output);
+    setLeftPower(output);
 
     pros::delay(10);
   }
+  reset();
+}
+
+void Drive::turnToAngle(const double angle, const double rpm, const double secThreshold){
+  reset();
+  turnMaxPower = utility::rpmToPower(rpm);
+  while(true) {
+    output = turnController.getOutput(utility::constrain180(angle - globalHeadingInDegrees));
+    setRightPower(-output);
+    setLeftPower(output);
+    pros::delay(10);
+  }
+  reset();
 }
 
 void Drive::setRightPower(double power) {
@@ -226,13 +231,24 @@ void Drive::resetEncoders() {
 }
 
 void Drive::reset() {
-  power = 0;
+  output = 0;
   msCounter = 0;
+  linearMaxPower = 0;
+  turnMaxPower = 0;
+  errorX = 0;
+  errorY = 0;
+  linearError = 0;
+  turnError = 0;
+  linearOutput = 0;
+  turnOutput = 0;
+  headingScaleFactor = 0;
 
   setRightPower(0);
   setLeftPower(0);
   linearController.reset();
   turnController.reset();
+  linearMTPController.reset();
+  turnMTPController.reset();
   resetImuSensors();
   resetEncoders();
   setDriveBrakeMode("COAST");

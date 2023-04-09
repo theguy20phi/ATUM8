@@ -19,7 +19,7 @@ double constrain180(double angle) {
   return(angle);
 }
 
-double reduce_negative_90_to_90(double angle) {
+double constrain90(double angle) {
   while(!(angle >= -90 && angle < 90)) {
     if( angle < -90 ) { angle += 180; }
     if(angle >= 90) { angle -= 180; }

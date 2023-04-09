@@ -26,20 +26,32 @@ namespace atum8 {
 
     }
 
-    void Catapult::automaticContolls(){
-        if(rotationSensor.get_position() > 300) {//420
-            if(rotationSensor.get_position() > 600)
-                catapultMotors.move_voltage(12000);
-            else
-              catapultMotors.move_voltage(9.5 * rotationSensor.get_position() - 100);
+    // void Catapult::automaticContolls(){
+    //     if(rotationSensor.get_position() > 300) {//420
+    //         if(rotationSensor.get_position() > 600)
+    //             catapultMotors.move_voltage(12000);
+    //         else
+    //           catapultMotors.move_voltage(9.5 * rotationSensor.get_position() - 100);
 
-        }
-        else {
-            if(Chris.get_digital(DIGITAL_R1))
+    //     }
+    //     else {
+    //         if(Chris.get_digital(DIGITAL_R1))
+    //             catapultMotors.move_voltage(12000);
+    //         else
+    //             catapultMotors.move_voltage(0);
+    //     }   
+    // }
+
+    void Catapult::automaticContolls() {
+        if(!catapultStop.get_value()) {
+            catapultMotors.move_voltage(12000);   
+        } else {
+            if(Chris.get_digital(DIGITAL_R1)) {
                 catapultMotors.move_voltage(12000);
-            else
+            } else {
                 catapultMotors.move_voltage(0);
-        }   
+            }
+        }
     }
 
     void Catapult::manualControlls(){
