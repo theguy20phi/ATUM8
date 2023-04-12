@@ -14,22 +14,29 @@ Pid turnTPController(100, 0, 0, 1, .05);
 
 
 void Drive::taskFn() {
+  setDriveBrakeMode("BRAKE");
   while(true) {
-    controller();
+    arcadeDrive();
     pros::delay(10);
   }
 }
 
-void Drive::controller() {
-  setDriveBrakeMode("COAST");
-  rightFrontTopDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  rightFrontBotDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
+void Drive::tankDrive() {
+  //rightFrontTopDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
+  //rightFrontBotDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
+  //rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
 
-  leftFrontTopDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  leftFrontBotDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  leftBackDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  //leftFrontTopDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  //leftFrontBotDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  //leftBackDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
+  rightDriveMotors.move_voltage(Chris.get_analog(ANALOG_RIGHT_Y));
+  leftDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y));
 };
+
+void Drive::arcadeDrive() {
+  rightDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y) - Chris.get_analog(ANALOG_RIGHT_X));
+  leftDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y) + Chris.get_analog(ANALOG_RIGHT_X));
+}
 
 
 

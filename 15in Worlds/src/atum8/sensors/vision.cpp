@@ -22,7 +22,7 @@ void Vision::redAimBot() {
   while (true) {
     pros::vision_object_s_t redGoal = visionSensor.get_by_sig(0, redID);
     double power = aimBotController.getOutput(redGoal.x_middle_coord,
-                                              visionFOVWidth * 0.5);
+                                              visionFOVWidth * 0.5);//change desired
 
     setRightPower(slew.getOutput(getRightPower(), power, 600));
     setLeftPower(slew.getOutput(getLeftPower(), -power, 600));

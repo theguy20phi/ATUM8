@@ -23,7 +23,8 @@ namespace atum8 {
 class Drive : Pid, SlewRate, Imus, public Task{
 public:
   void taskFn();
-  void controller();
+  void tankDrive();
+  void arcadeDrive();
   void movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold);
   void turnPID(const double angle, const double rpm, const double acceleration, const double secThreshold);
   void moveToPoint(const double desiredX, const double desiredY, const double linearRpm, const double turnRpm, const double secThreshold);
