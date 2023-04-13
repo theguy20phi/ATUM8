@@ -3,8 +3,8 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the setup for the motors, controller, and sensors. 
  *        It also provides globals variables used throughout the program. 
- * @version 0.3
- * @date 2023-03-29
+ * @version 0.4
+ * @date 2023-04-12
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -41,9 +41,9 @@ extern pros::Motor_Group intakeMotors;
 extern pros::Imu imuSensorAlpha;
 extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
-extern pros::Rotation rotationSensor;
 extern pros::Optical opticalSensor;
-extern pros::Vision visionSensor;
+extern pros::Vision visionSensorGoal;
+extern pros::Vision visionSensorDisk;
 extern pros::ADIDigitalIn catapultStop;
 extern pros::ADIDigitalOut endGame;
 extern pros::ADIEncoder rightEncoder;

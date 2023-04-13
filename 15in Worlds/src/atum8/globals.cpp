@@ -37,8 +37,8 @@ pros::Imu imuSensorAlpha(20);
 pros::Imu imuSensorBeta(15);
 pros::Imu imuSensorCharlie(11);
 pros::Optical opticalSensor(9);
-pros::Rotation rotationSensor(20);
-pros::Vision visionSensor(6);
+pros::Vision visionSensorGoal(20);
+pros::Vision visionSensorDisk(10);
 
 pros::ADIDigitalIn catapultStop('A');
 pros::ADIDigitalOut endGame('B');
@@ -46,7 +46,7 @@ pros::ADIEncoder leftEncoder('D', 'C', false);
 pros::ADIEncoder rightEncoder('E', 'F', false);
 pros::ADIEncoder backEncoder('G', 'H', false);
 
-int program{0};
+int program{ 0 };
 double globalX;
 double globalY;
 double globalHeadingInRadians;
