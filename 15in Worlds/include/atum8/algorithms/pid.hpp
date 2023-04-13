@@ -27,7 +27,7 @@ public:
   Pid(float Kp, float Ki, float Kd, double errorThreshold, double derivativeThreshold);
 
   double getOutput(double current, double desired);
-  double getOutput(double error);
+  double getOutput(double error_);
   void setMaxOutput(double output);
   void reset();
   bool isSettled();

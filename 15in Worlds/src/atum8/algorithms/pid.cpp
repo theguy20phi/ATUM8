@@ -39,7 +39,9 @@ double Pid::getOutput(double current, double desired) {
   return output;
 }
 
-double Pid::getOutput(double error) {
+double Pid::getOutput(double error_) {
+  //update error
+  error = error_;
   // Calculuate Integral Value
   newIntegral = integral + error;
 
