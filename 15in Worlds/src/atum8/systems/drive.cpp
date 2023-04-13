@@ -8,37 +8,28 @@
 namespace atum8 {
 Pid linearController(800, 1, 8.8, 0.5, .05);
 Pid turnController(270, 0.8, 0, 1, .05);
-Pid linearMTPController(800, 0, 0, 0.5, .05);
+Pid linearMTPController(800, 1, 0, 2, .05);
 Pid turnMTPController(300, 0, 0, 1, .05);
-Pid turnTPController(100, 0, 0, 1, .05);
+Pid turnTPController(300, 0, 0, 1, .05);
 
 
 void Drive::taskFn() {
   setDriveBrakeMode("BRAKE");
   while(true) {
-    arcadeDrive();
+    tankDrive();
     pros::delay(10);
   }
 }
 
 void Drive::tankDrive() {
-  //rightFrontTopDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  //rightFrontBotDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  //rightBackDrive.move(Chris.get_analog(ANALOG_RIGHT_Y));
-
-  //leftFrontTopDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  //leftFrontBotDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  //leftBackDrive.move(Chris.get_analog(ANALOG_LEFT_Y));
-  rightDriveMotors.move_voltage(Chris.get_analog(ANALOG_RIGHT_Y));
-  leftDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y));
+  rightDriveMotors.move(Chris.get_analog(ANALOG_RIGHT_Y));
+  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y));
 };
 
 void Drive::arcadeDrive() {
-  rightDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y) - Chris.get_analog(ANALOG_RIGHT_X));
-  leftDriveMotors.move_voltage(Chris.get_analog(ANALOG_LEFT_Y) + Chris.get_analog(ANALOG_RIGHT_X));
+  rightDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) - Chris.get_analog(ANALOG_RIGHT_X));
+  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) + Chris.get_analog(ANALOG_RIGHT_X));
 }
-
-
 
 void Drive::movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold) {
   reset();
@@ -126,12 +117,13 @@ void Drive::turnToPoint(const double desiredX, const double desiredY, const doub
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
     output = turnTPController.getOutput(utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY)) - globalHeadingInDegrees));
-    output = std::clamp(turnOutput, -turnMaxPower, turnMaxPower);
+    output = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
-    if(turnTPController.isSettled())
-      break;
-    if (msCounter / 1000 > secThreshold)
-      break;
+    
+    //if(turnTPController.isSettled())
+      //break;
+    //if (msCounter / 1000 > secThreshold)
+      //break;
 
     setRightPower(-output);
     setLeftPower(output);

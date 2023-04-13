@@ -3,8 +3,8 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides a class for all of the drive train methods for the
  15in. As of the moment the 15in is a tank drive.
- * @version 0.6
- * @date 2023-04-06
+ * @version 0.7
+ * @date 2023-04-12
  *
  * @copyright Copyright (c) 2023
  *
