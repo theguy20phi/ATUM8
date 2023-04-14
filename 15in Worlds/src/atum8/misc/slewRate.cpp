@@ -1,4 +1,4 @@
-#include "atum8/slewRate.hpp"
+#include "atum8/misc/slewRate.hpp"
 #include "main.h"
 
 namespace atum8 {

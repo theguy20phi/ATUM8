@@ -11,7 +11,7 @@
  
 #pragma once
 #include "main.h"
-#include "globals.hpp"
+#include "atum8/globals.hpp"
 
 namespace atum8{
     class SlewRate{

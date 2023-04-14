@@ -1,4 +1,4 @@
-#include "atum8/controllers/pid.hpp"
+#include "atum8/algorithms/pid.hpp"
 #include "main.h"
 
 
@@ -35,6 +35,22 @@ double Pid::getOutput(double current, double desired) {
     output = -maxOutput;
   else
     integral = newIntegral;
+
+  return output;
+}
+
+double Pid::getOutput(double error_) {
+  //update error
+  error = error_;
+  // Calculuate Integral Value
+  newIntegral = integral + error;
+
+  // Calculate Derivative Value and Update Error
+  derivative = error - prevError;
+  prevError = error;
+
+  // Calculuate Ouput
+  output = error * kP + integral * kI + derivative * kD;
 
   return output;
 }

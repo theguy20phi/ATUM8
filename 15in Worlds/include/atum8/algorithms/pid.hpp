@@ -3,8 +3,8 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com.com)
  * @brief This file provides a class for a PID control loop. Since the 15in is only a catapult we only use this for the drive. 
  *        (proportional, integral, deriviate)
- * @version 0.2
- * @date 2023-03-14
+ * @version 0.3
+ * @date 2023-04-04
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -27,6 +27,7 @@ public:
   Pid(float Kp, float Ki, float Kd, double errorThreshold, double derivativeThreshold);
 
   double getOutput(double current, double desired);
+  double getOutput(double error_);
   void setMaxOutput(double output);
   void reset();
   bool isSettled();
