@@ -2,7 +2,6 @@
 #include <algorithm>
 #include <cmath>
 #include <math.h>
-#include "atum8/misc/utility.hpp"
 #include "main.h"
 
 namespace atum8 {
