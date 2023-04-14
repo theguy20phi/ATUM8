@@ -4,7 +4,7 @@
  * @brief This provides a simple parent class for other systems
  * to derive from in order to be treated like a task themselves and run a
  * set function, the taskFn, in parallel.
- * @version 0.1
+ * @version 0.2
  * @date 2023-02-06
  *
  * @copyright Copyright (c) 2023
@@ -17,20 +17,30 @@
 
 namespace atum8
 {
+    using TaskFn = std::function<void()>;
+
     /**
      * @brief This provides a simple parent class for other systems
-     * to derive from in order to be treated like a task themselves and run a
-     * set function, the taskFn, in parallel.
+     * to derive from in order to be treated like a task themselves and run those
+     * functions passed in in parallel.
      *
      */
     class Task
     {
     public:
         /**
-         * @brief This function will be ran in a pros task.
-         *
+         * @brief Constructs a new Task object.
+         * 
+         * @param iPriority 
          */
-        virtual void taskFn() = 0;
+        Task(int iPriority = 8);
+
+        /**
+         * @brief Adds taskFns to be ran in parallel.
+         * 
+         * @param iTaskFns 
+         */
+        virtual void addTaskFns(const std::vector<TaskFn> iTaskFns);
 
         /**
          * @brief Starts the task (begins running taskFn).
@@ -39,13 +49,14 @@ namespace atum8
         virtual void start();
 
         /**
-         * @brief Stops the tas (stops running taskFn).
+         * @brief Stops the task (stops running taskFn).
          *
          */
         virtual void stop();
 
     protected:
         int priority;
-        std::unique_ptr<pros::Task> task{nullptr};
+        std::vector<TaskFn> taskFns;
+        std::vector<std::shared_ptr<pros::Task>> tasks;
     };
 } // namespace atum8
