@@ -28,6 +28,22 @@ namespace atum8
     {
     }
 
+    void Drive::control(pros::Controller master)
+    {
+        const int leftInput{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
+        const int rightInput{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y)};
+        driverMove(leftInput, rightInput);
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B))
+        {
+            if (driverSettings->brakeMode == pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST)
+                driverSettings->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD;
+            else
+                driverSettings->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST;
+        }
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+            driverSettings->maxPower = driverSettings->maxPower == 1.0 ? 0.5 : 1.0;
+    }
+
     void Drive::moveTo(const std::vector<Position> &positions,
                        const okapi::QTime &maxTime,
                        int maxLateral,
@@ -43,11 +59,12 @@ namespace atum8
                 const Position waypoint{generateWaypoint(state, positions[i])};
                 okapi::QLength lateralError{distance(state, waypoint)};
                 okapi::QAngle angularError{angle(state, waypoint)};
-                if (okapi::abs(angularError) > 90_deg) {
+                if (okapi::abs(angularError) > 90_deg)
+                {
                     lateralError = -1 * lateralError;
                     angularError = okapi::OdomMath::constrainAngle180(angularError + 180_deg);
                 }
-                if(okapi::abs(lateralError) < 2_in)
+                if (okapi::abs(lateralError) < 2_in)
                     angularError = 0_deg;
                 if (isSettled(lateralError, angularError, i, positions.size() - 1))
                     break;
@@ -56,31 +73,31 @@ namespace atum8
                 lateralOutput *= abs(cos(angularError.convert(okapi::radian)));
                 int angularOutput = angularController->getOutput(angularError.convert(okapi::degree));
                 angularOutput = std::clamp(angularOutput, -maxAngular, maxAngular);
-                move(lateralOutput, angularOutput);
+                move(lateralOutput + angularOutput, lateralOutput - angularOutput);
                 pros::delay(10);
             }
         }
         tare();
     }
 
-    void Drive::driver(int forward, int turn)
+    void Drive::driverMove(int leftInput, int rightInput)
     {
         setBrakeMode(driverSettings->brakeMode);
-        forward = (abs(forward) < driverSettings->deadZone) ? 0 : forward;
-        turn = (abs(turn) < driverSettings->deadZone) ? 0 : turn;
-        forward = driverSettings->stickFunction(forward);
-        turn = driverSettings->stickFunction(turn);
-        forward *= driverSettings->maxPower;
-        turn *= driverSettings->maxPower;
-        move(forward, turn);
+        leftInput = (abs(leftInput) < driverSettings->deadZone) ? 0 : leftInput;
+        rightInput = (abs(rightInput) < driverSettings->deadZone) ? 0 : rightInput;
+        leftInput = driverSettings->stickFunction(leftInput);
+        rightInput = driverSettings->stickFunction(rightInput);
+        leftInput *= driverSettings->maxPower;
+        rightInput *= driverSettings->maxPower;
+        move(leftInput, rightInput);
     }
 
-    void Drive::move(int forward, int turn)
+    void Drive::move(int leftInput, int rightInput)
     {
-        if (!forward && !turn)
+        if (!leftInput && !rightInput)
             return applyBrakes();
-        left->move(forward + turn);
-        right->move(forward - turn);
+        left->move(leftInput);
+        right->move(rightInput);
     }
 
     void Drive::tare()
@@ -136,7 +153,7 @@ namespace atum8
     }
 
     /* -------------------------------------------------------------------------- */
-    /*                               Drive Builder                              */
+    /*                               Drive Builder                                */
     /* -------------------------------------------------------------------------- */
 
     SPDrive SPDriveBuilder::build() const

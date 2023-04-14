@@ -14,8 +14,10 @@
 #include "atum8/controllers/controller.hpp"
 #include "atum8/misc/settledChecker.hpp"
 #include "atum8/misc/slewRate.hpp"
-#include "atum8/tracking/poseEstimator.hpp"
+#include "atum8/devices/poseEstimator.hpp"
+#include "pros/misc.hpp"
 #include <numeric>
+
 
 using namespace okapi::literals;
 
@@ -68,6 +70,14 @@ namespace atum8
               SPLateralSettledChecker iFinalLateralSettledChecker,
               SPLateralSettledChecker iMidwayLateralSettledChecker,
               SPAngularSettledChecker iAngularSettledChecker);
+              
+
+        /**
+         * @brief Provides the controls for the driver controlled portion of the match.
+         * 
+         * @param master 
+         */
+        void control(pros::Controller master);
 
         void moveTo(const std::vector<Position> &positions,
                     const okapi::QTime &maxTime = 0_s,
@@ -75,20 +85,12 @@ namespace atum8
                     int maxAngular = 127);
 
         /**
-         * @brief The driver controls for the drive.
-         *
-         * @param forward
-         * @param turn
-         */
-        void driver(int forward = 0, int turn = 0);
-
-        /**
          * @brief Applies voltages to the appropriate motors given values for forward and turn.
          *
-         * @param forward
-         * @param turn
+         * @param leftInput
+         * @param rightInput
          */
-        void move(int forward = 0, int turn = 0);
+        void move(int leftInput = 0, int rightInput = 0);
 
         /**
          * @brief Resets the sensor values.
@@ -111,6 +113,7 @@ namespace atum8
         SPDriverSettings getDriverSettings() const;
 
     private:
+        void driverMove(int leftInput = 0, int rightInput = 0);
         void applyBrakes();
         bool isTimeExpired(const okapi::QTime &startTime, const okapi::QTime &maxTime);
         bool isSettled(const okapi::QLength &lateralError,
@@ -152,7 +155,7 @@ namespace atum8
          * @param iLeftPorts
          * @return SPDriveBuilder
          */
-        SPDriveBuilder withLeftPorts(const std::vector<std::int8_t> &iLeftPorts);
+        SPDriveBuilder withLeftPorts(const std::vector<int8_t> &iLeftPorts);
 
         /**
          * @brief Drive configured with these right motor ports.
@@ -160,7 +163,7 @@ namespace atum8
          * @param iRightPorts
          * @return SPDriveBuilder
          */
-        SPDriveBuilder withRightPorts(const std::vector<std::int8_t> &iRightPorts);
+        SPDriveBuilder withRightPorts(const std::vector<int8_t> &iRightPorts);
 
         /**
          * @brief Drive configured with this pose estimator.

@@ -16,19 +16,20 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "ANUBIS"; },
-		[](int control)
-		{
-			return "X: " + std::to_string(odometry->getPosition().x.convert(okapi::inch)) + "in";
-		},
-		[](int control)
-		{
-			return "Y: " + std::to_string(odometry->getPosition().y.convert(okapi::inch)) + "in";
-		},
-		[](int control)
-		{
-			return "H: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
-		}});
+		{ return "ANUBIS"; } ,
+		 [](int control)
+		 {
+			 return "X: " + std::to_string(odometry->getPosition().x.convert(okapi::inch)) + "in";
+		 },
+		 [](int control)
+		 {
+			 return "Y: " + std::to_string(odometry->getPosition().y.convert(okapi::inch)) + "in";
+		 },
+		 [](int control)
+		 {
+			 return "H: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
+		 }
+	});
 	gui = autonSelector;
 
 	odometry = atum8::SPOdometryBuilder()
@@ -67,32 +68,29 @@ void initialize()
 
 	odometry->start();
 
-	// auto flywheelVelController = std::make_shared<atum8::PidFF>(30, 0, 0, 4.05);
-	// flywheel = atum8::SPFlywheelBuilder()
-	// 			   .withMotors({16, -17})
-	// 			   .withController(flywheelVelController)
-	// 			   .withSettledChecker(20_rpm, 20_rpmps)
-	// 			   .withSpeedMultiplier(15.0)
-	// 			   .withRollingAverage(15)
-	// 			   .withSlew(-100, 100)
-	// 			   .build();
-	// flywheel->start();
-	//
-	// intake = atum8::SPIntakeBuilder()
-	// 			 .withMotor(13)
-	// 			 .withPiston('H')
-	// 			 .withFlywheel(flywheel)
-	// 			 .withShotDelay(450)
-	// 			 .build();
-	// intake->start();
-	//
-	// roller = atum8::SPRollerBuilder()
-	// 			 .withMotor(5)
-	// 			 .withColor(atum8::Color::Red)
-	// 			 .build();
-	// roller->start();
-	//
-	// endGame = std::make_unique<pros::ADIDigitalOut>('G');
+	auto flywheelVelController = std::make_shared<atum8::PidFF>(30, 0, 0, 4.05);
+	auto flywheelVelFilter = std::make_shared<atum8::RollingAverage>(15);
+	shooter = atum8::SPShooterBuilder()
+				  .withFlywheelMotors({16, -17})
+				  .withIndexerMotor(18)
+				  .withAngleAdjuster(20, 'A')
+				  .withIntakeMotor(13)
+				  .withIntakeAdjuster(20, 'B')
+				  .withController(flywheelVelController)
+				  .withSettledChecker(20_rpm, 20_rpmps)
+				  .withGearing(15.0)
+				  .withFilter(flywheelVelFilter)
+				  .withSlew(-100, 100)
+				  .build();
+	shooter->start();
+
+	roller = atum8::SPRollerBuilder()
+				 .withMotor(5)
+				 .withColor(atum8::Color::Red)
+				 .build();
+	roller->start();
+
+	endGame = std::make_unique<pros::ADIDigitalOut>(pros::ext_adi_port_pair_t{20, 'C'});
 }
 
 void disabled()
@@ -140,23 +138,8 @@ void opcontrol()
 	while (true)
 	{
 		gui->view();
+		drive->control(master);
 
-		// Drive Controls
-		const int forward{master.get_analog(ANALOG_LEFT_Y)};
-		const int turn{master.get_analog(ANALOG_RIGHT_X)};
-		drive->driver(forward, turn);
-
-		// if (master.get_digital_new_press(DIGITAL_B))
-		// {
-		// 	if (drive->getDriverSettings()->brakeMode == pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST)
-		// 		drive->getDriverSettings()->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_HOLD;
-		// 	else
-		// 		drive->getDriverSettings()->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST;
-		// }
-		//
-		// if (master.get_digital_new_press(DIGITAL_A))
-		// 	drive->getDriverSettings()->maxPower = drive->getDriverSettings()->maxPower == 1.0 ? 0.5 : 1.0;
-		//
 		// // Intake Controls
 		// if (master.get_digital(DIGITAL_L1))
 		// 	intake->runIntake(127);

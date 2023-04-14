@@ -100,6 +100,7 @@ namespace atum8
     using UPMotor = std::unique_ptr<pros::Motor>;
     using UPMotorGroup = std::unique_ptr<pros::MotorGroup>;
     using UPADIDigitalOut = std::unique_ptr<pros::ADIDigitalOut>;
+    using SPADIDigitalOut = std::shared_ptr<pros::ADIDigitalOut>;
     using UPADIAnalogIn = std::unique_ptr<pros::ADIAnalogIn>;
     using UPOptical = std::unique_ptr<pros::Optical>;
 }
