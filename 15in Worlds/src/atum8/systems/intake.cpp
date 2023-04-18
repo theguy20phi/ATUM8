@@ -13,12 +13,12 @@ void Intake::taskFn() {
 }
 
 void Intake::controller() {
-  if (Chris.get_digital_new_press(DIGITAL_LEFT))
-    isDiskMode = !isDiskMode;
+  //if (Chris.get_digital_new_press(DIGITAL_LEFT))
+    //isDiskMode = !isDiskMode;
   if (isDiskMode == true)
     diskControlls();
-  else
-    rollerControlls();
+  //else
+    //rollerControlls();
 }
 
 void Intake::diskControlls() {
@@ -35,6 +35,10 @@ void Intake::diskControlls() {
     }
   } else {
     buttonDuration = 0;
+  }
+  if (Chris.get_digital_new_press(DIGITAL_B)) {
+    is3StackMode = !is3StackMode;
+    intakeToggler.set_value(is3StackMode);
   }
 }
 

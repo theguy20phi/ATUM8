@@ -10,10 +10,10 @@ void EndGame::taskFn() {
   }
 }
 void EndGame::controller() { 
-    if (Chris.get_digital(DIGITAL_DOWN) and Chris.get_digital(DIGITAL_B))
-        shoot();
-    else if(Chris.get_digital(DIGITAL_DOWN) or Chris.get_digital(DIGITAL_B))
-        retract();
+  if(Chris.get_digital_new_press(DIGITAL_UP)) {
+    isRetracted = !isRetracted;
+    endGame.set_value(isRetracted);
+  }
 }
 
 void EndGame::shoot() {
