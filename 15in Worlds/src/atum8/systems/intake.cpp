@@ -5,6 +5,7 @@
 
 namespace atum8 {
 void Intake::taskFn() {
+  intakeToggler.set_value(is3StackMode);
   intakeMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
   while (true) {
     controller();
@@ -24,7 +25,8 @@ void Intake::controller() {
 void Intake::diskControlls() {
   static int buttonDuration;
   if (Chris.get_digital(DIGITAL_L1)) {
-    intakeMotors.move_voltage(12000);
+    if(catapultStop.get_value())
+      intakeMotors.move_voltage(12000);
     buttonDuration = 0;
   } else if (Chris.get_digital(DIGITAL_L2)) {
     buttonDuration += 10;

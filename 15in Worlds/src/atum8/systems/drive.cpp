@@ -1,8 +1,8 @@
 #include "atum8/systems/drive.hpp"
+#include "main.h"
 #include <algorithm>
 #include <cmath>
 #include <math.h>
-#include "main.h"
 
 namespace atum8 {
 Pid linearController(800, 1, 8.8, 0.5, .05);
@@ -10,27 +10,70 @@ Pid turnController(270, 0.8, 0, 1, .05);
 Pid linearMTPController(800, 1, 0, 2, .05);
 Pid turnMTPController(300, 0, 0, 1, .05);
 Pid turnTPController(300, 0, 0, 1, .05);
+Pid aimBotControllerz(50, 0, 0, 0.5, 0.5);
 
+const short int redID{1};
+const short int blueID{2};
+const short int yellowID{3};
+const short int visionFOVWidth{316};
+const short int visionFOVHeight{212};
 
 void Drive::taskFn() {
   setDriveBrakeMode("BRAKE");
-  while(true) {
+
+  aimBotControllerz.setMaxOutput(6000);
+  if (program == 1)
+    isRedMode = true;
+  else if (program == 2)
+    isRedMode = false;
+
+  while (true) {
     tankDrive();
     pros::delay(10);
   }
 }
 
 void Drive::tankDrive() {
-  rightDriveMotors.move(Chris.get_analog(ANALOG_RIGHT_Y));
-  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y));
+
+  pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(
+      redID, 11497, 14799, 13148, -1561, -511, -1036, 3.000, 0);
+  visionSensorGoal.set_signature(redID, &RED_SIG);
+  pros::vision_signature_s_t BLUE_SIG = pros::Vision::signature_from_utility(
+      blueID, -3351, -2495, -2922, 10381, 12573, 11478, 3.000, 0);
+  visionSensorGoal.set_signature(blueID, &BLUE_SIG);
+  
+  if (Chris.get_digital_new_press(DIGITAL_Y))
+    isRedMode = !isRedMode;
+
+  double aimAssistPower{0.0};
+  if (Chris.get_digital(DIGITAL_R2)) {
+    pros::vision_object_s_t goal =
+        visionSensorGoal.get_by_sig(0, isRedMode ? redID : blueID);
+    aimAssistPower =
+        aimBotControllerz.getOutput(goal.x_middle_coord, visionFOVWidth * 0.5);
+  }
+
+  std::cout << "aimAssistPower: " << aimAssistPower << std::endl;
+
+  rightDriveMotors.move(Chris.get_analog(ANALOG_RIGHT_Y) + aimAssistPower);
+  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) - aimAssistPower);
 };
 
 void Drive::arcadeDrive() {
-  rightDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) - Chris.get_analog(ANALOG_RIGHT_X));
-  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) + Chris.get_analog(ANALOG_RIGHT_X));
+  rightDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) -
+                        Chris.get_analog(ANALOG_RIGHT_X));
+  leftDriveMotors.move(Chris.get_analog(ANALOG_LEFT_Y) +
+                       Chris.get_analog(ANALOG_RIGHT_X));
 }
 
-void Drive::movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold) {
+void Drive::visionAim() {
+  if (Chris.get_digital_new_press(DIGITAL_Y))
+    isRedMode = !isRedMode;
+}
+
+void Drive::movePID(const double inches, const double rpm,
+                    const double acceleration, const bool dift,
+                    const double secThreshold) {
   reset();
   linearController.setMaxOutput(utility::rpmToPower(rpm));
   while (true) {
@@ -39,20 +82,20 @@ void Drive::movePID(const double inches, const double rpm, const double accelera
 
     setRightPower(SlewRate::getOutput(getRightPower(), output, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration));
-    
 
     if (linearController.isSettled())
       break;
     if (msCounter / 1000 > secThreshold)
       break;
 
-    msCounter+=10;
+    msCounter += 10;
     pros::delay(10);
   }
   reset();
 }
 
-void Drive::turnPID(const double angle, const double rpm, const double acceleration, const double secThreshold) {
+void Drive::turnPID(const double angle, const double rpm,
+                    const double acceleration, const double secThreshold) {
   reset();
   turnController.setMaxOutput(utility::rpmToPower(rpm));
   while (true) {
@@ -66,41 +109,47 @@ void Drive::turnPID(const double angle, const double rpm, const double accelerat
     if (msCounter / 1000 > secThreshold)
       break;
 
-    msCounter+=10;
+    msCounter += 10;
     pros::delay(10);
   }
   reset();
 }
 
-void Drive::moveToPoint(const double desiredX, const double desiredY, const double linearRpm, const double turnRpm, const double secThreshold) {
+void Drive::moveToPoint(const double desiredX, const double desiredY,
+                        const double linearRpm, const double turnRpm,
+                        const double secThreshold) {
   reset();
   linearMaxPower = utility::rpmToPower(linearRpm);
   turnMaxPower = utility::rpmToPower(turnRpm);
 
-  while(true) {
+  while (true) {
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
 
     linearError = hypot(errorX, errorY);
-    turnError = utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY))-globalHeadingInDegrees);
+    turnError = utility::constrain180(
+        utility::convertRadianToDegree(atan2(errorX, errorY)) -
+        globalHeadingInDegrees);
     linearOutput = linearMTPController.getOutput(linearError);
 
     headingScaleFactor = cos(utility::convertDegreeToRadian(turnError));
-    linearOutput*=headingScaleFactor;
+    linearOutput *= headingScaleFactor;
     turnError = utility::constrain90(turnError);
     turnOutput = turnMTPController.getOutput(turnError);
 
     if (linearError < 2)
       turnOutput = 0;
 
-    linearOutput = utility::clamp(linearOutput, -fabs(headingScaleFactor) * linearMaxPower, fabs(headingScaleFactor) * linearMaxPower);
+    linearOutput =
+        utility::clamp(linearOutput, -fabs(headingScaleFactor) * linearMaxPower,
+                       fabs(headingScaleFactor) * linearMaxPower);
     turnOutput = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
-    if(linearMTPController.isSettled())
+    if (linearMTPController.isSettled())
       break;
     if (msCounter / 1000 > secThreshold)
       break;
-    
+
     setRightPower(linearOutput - turnOutput);
     setLeftPower(linearOutput + turnOutput);
 
@@ -109,20 +158,22 @@ void Drive::moveToPoint(const double desiredX, const double desiredY, const doub
   reset();
 }
 
-void Drive::turnToPoint(const double desiredX, const double desiredY, const double rpm, const double secThreshold) {
+void Drive::turnToPoint(const double desiredX, const double desiredY,
+                        const double rpm, const double secThreshold) {
   reset();
   turnMaxPower = utility::rpmToPower(rpm);
-  while(true) {
+  while (true) {
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
-    output = turnTPController.getOutput(utility::constrain180(utility::convertRadianToDegree(atan2(errorX, errorY)) - globalHeadingInDegrees));
+    output = turnTPController.getOutput(utility::constrain180(
+        utility::convertRadianToDegree(atan2(errorX, errorY)) -
+        globalHeadingInDegrees));
     output = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
-    
-    //if(turnTPController.isSettled())
-      //break;
-    //if (msCounter / 1000 > secThreshold)
-      //break;
+    // if(turnTPController.isSettled())
+    // break;
+    // if (msCounter / 1000 > secThreshold)
+    // break;
 
     setRightPower(-output);
     setLeftPower(output);
@@ -132,11 +183,13 @@ void Drive::turnToPoint(const double desiredX, const double desiredY, const doub
   reset();
 }
 
-void Drive::turnToAngle(const double angle, const double rpm, const double secThreshold){
+void Drive::turnToAngle(const double angle, const double rpm,
+                        const double secThreshold) {
   reset();
   turnMaxPower = utility::rpmToPower(rpm);
-  while(true) {
-    output = turnController.getOutput(utility::constrain180(angle - globalHeadingInDegrees));
+  while (true) {
+    output = turnController.getOutput(
+        utility::constrain180(angle - globalHeadingInDegrees));
     setRightPower(-output);
     setLeftPower(output);
     pros::delay(10);
@@ -201,16 +254,17 @@ void Drive::setDriveBrakeMode(const std::string brakeMode) {
 }
 
 double Drive::getRightEncoderValues() {
-  return ((driveGearRatio) * // drive gear ratio
-          ((rightFrontTopDrive.get_position() + rightFrontBotDrive.get_position() +
-            rightBackDrive.get_position())) /
-          3);
+  return (
+      (driveGearRatio) * // drive gear ratio
+      ((rightFrontTopDrive.get_position() + rightFrontBotDrive.get_position() +
+        rightBackDrive.get_position())) /
+      3);
 }
 
 double Drive::getLeftEncoderValues() {
   return ((driveGearRatio) * // drive gear ratio
-          ((leftFrontTopDrive.get_position() + leftFrontBotDrive.get_position() +
-            leftBackDrive.get_position())) /
+          ((leftFrontTopDrive.get_position() +
+            leftFrontBotDrive.get_position() + leftBackDrive.get_position())) /
           3);
 }
 

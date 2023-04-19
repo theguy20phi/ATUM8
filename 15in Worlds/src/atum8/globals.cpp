@@ -41,11 +41,11 @@ pros::Vision visionSensorGoal(20);
 pros::Vision visionSensorDisk(10);
 
 pros::ADIDigitalIn catapultStop('A');
-pros::ADIDigitalOut endGame('B');
-pros::ADIEncoder leftEncoder('D', 'C', false);
-pros::ADIEncoder rightEncoder('E', 'F', false);
-pros::ADIEncoder backEncoder('G', 'H', false);
-pros::ADIAnalogOut intakeToggler ({{4, 'A'}});
+pros::ADIDigitalOut intakeToggler('G');
+pros::ADIEncoder leftEncoder('B', 'C', false);
+pros::ADIEncoder rightEncoder('B', 'C', false);
+pros::ADIEncoder backEncoder('B', 'C', false);
+pros::ADIAnalogOut endGame ({{4, 'B'}});
 
 int program{ 0 };
 double globalX;

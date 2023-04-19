@@ -25,6 +25,7 @@ public:
   void taskFn();
   void tankDrive();
   void arcadeDrive();
+  void visionAim();
   void movePID(const double inches, const double rpm, const double acceleration, const bool dift, const double secThreshold);
   void turnPID(const double angle, const double rpm, const double acceleration, const double secThreshold);
   void moveToPoint(const double desiredX, const double desiredY, const double linearRpm, const double turnRpm, const double secThreshold);
@@ -56,5 +57,13 @@ private:
   double linearOutput;
   double turnOutput;
   double headingScaleFactor;
+
+  double aimAssistPower;
+  bool isRedMode { true };
+  //const short int redID { 1 };
+  //const short int blueID { 2 };
+  //const short int yellowID { 3 };
+  //const short int visionFOVWidth { 316 };
+  //const short int visionFOVHeight { 212 };
 };
 } // namespace atum8
