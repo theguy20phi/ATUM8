@@ -11,28 +11,36 @@ namespace atum8
     Drive::Drive(UPMotorGroup iLeft,
                  UPMotorGroup iRight,
                  SPPoseEstimator iPoseEstimator,
+                 UPVision iVision,
                  SPDriverSettings iDriverSettings,
                  SPController iLateralController,
                  SPController iAngularController,
+                 SPController iAimController,
                  SPLateralSettledChecker iFinalLateralSettledChecker,
                  SPLateralSettledChecker iMidwayLateralSettledChecker,
-                 SPAngularSettledChecker iAngularSettledChecker) : left{std::move(iLeft)},
-                                                                   right{std::move(iRight)},
-                                                                   poseEstimator{iPoseEstimator},
-                                                                   driverSettings{iDriverSettings},
-                                                                   lateralController{iLateralController},
-                                                                   angularController{iAngularController},
-                                                                   finalLateralSettledChecker{iFinalLateralSettledChecker},
-                                                                   midwayLateralSettledChecker{iMidwayLateralSettledChecker},
-                                                                   angularSettledChecker{iAngularSettledChecker}
+                 SPAngularSettledChecker iAngularSettledChecker,
+                 SPFilter iAimFilter) : left{std::move(iLeft)},
+                                        right{std::move(iRight)},
+                                        poseEstimator{iPoseEstimator},
+                                        vision{std::move(iVision)},
+                                        driverSettings{iDriverSettings},
+                                        lateralController{iLateralController},
+                                        angularController{iAngularController},
+                                        aimController{iAimController},
+                                        finalLateralSettledChecker{iFinalLateralSettledChecker},
+                                        midwayLateralSettledChecker{iMidwayLateralSettledChecker},
+                                        angularSettledChecker{iAngularSettledChecker},
+                                        aimFilter{iAimFilter}
     {
+        redSig = pros::Vision::signature_from_utility(1, 11497, 14799, 13148, -1561, -511, -1036, 3.000, 0);
+        blueSig = pros::Vision::signature_from_utility(2, -3351, -2495, -2922, 10381, 12573, 11478, 3.000, 0);
+        vision->set_signature(1, &redSig);
+        vision->set_signature(2, &blueSig);
+        vision->set_exposure(75);
     }
 
     void Drive::control(pros::Controller master)
     {
-        const int leftInput{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
-        const int rightInput{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y)};
-        driverMove(leftInput, rightInput);
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B))
         {
             if (driverSettings->brakeMode == pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST)
@@ -40,8 +48,14 @@ namespace atum8
             else
                 driverSettings->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST;
         }
-        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
-            driverSettings->maxPower = driverSettings->maxPower == 1.0 ? 0.5 : 1.0;
+        double aimAssist{0.0};
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
+            aimAssist = visionAim();
+        const int leftInput{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
+        const int rightInput{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y)};
+        driverMove(leftInput + aimAssist, rightInput - aimAssist);
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X))
+            color = color == Color::Red ? Color::Blue : Color::Red;
     }
 
     void Drive::moveTo(const std::vector<Position> &positions,
@@ -80,6 +94,13 @@ namespace atum8
         tare();
     }
 
+    double Drive::visionAim()
+    {
+        const auto goal = vision->get_by_sig(0, color == Color::Red ? redSig.id : blueSig.id);
+        const double dx{aimFilter->get(goal.x_middle_coord)};
+        return aimController->getOutput(dx);
+    }
+
     void Drive::driverMove(int leftInput, int rightInput)
     {
         setBrakeMode(driverSettings->brakeMode);
@@ -107,6 +128,11 @@ namespace atum8
         lateralController->reset();
         angularController->reset();
         move();
+    }
+
+    void Drive::setColor(const Color &iColor)
+    {
+        color = iColor;
     }
 
     void Drive::setBrakeMode(const pros::motor_brake_mode_e &brakeMode)
@@ -161,12 +187,15 @@ namespace atum8
         return std::make_shared<Drive>(std::make_unique<pros::MotorGroup>(leftPorts),
                                        std::make_unique<pros::MotorGroup>(rightPorts),
                                        poseEstimator,
+                                       std::make_unique<pros::Vision>(visionPort, pros::E_VISION_ZERO_CENTER),
                                        driverSettings,
                                        lateralController,
                                        angularController,
+                                       aimController,
                                        finalLateralSettledChecker,
                                        midwayLateralSettledChecker,
-                                       angularSettledChecker);
+                                       angularSettledChecker,
+                                       aimFilter);
     }
 
     SPDriveBuilder SPDriveBuilder::withLeftPorts(const std::vector<int8_t> &iLeftPorts)
@@ -184,6 +213,12 @@ namespace atum8
     SPDriveBuilder SPDriveBuilder::withPoseEstimator(SPPoseEstimator iPoseEstimator)
     {
         poseEstimator = iPoseEstimator;
+        return *this;
+    }
+
+    SPDriveBuilder SPDriveBuilder::withVision(int8_t port)
+    {
+        visionPort = port;
         return *this;
     }
 
@@ -223,6 +258,12 @@ namespace atum8
         return *this;
     }
 
+    SPDriveBuilder SPDriveBuilder::withAimController(SPController iAimController)
+    {
+        aimController = iAimController;
+        return *this;
+    }
+
     SPDriveBuilder SPDriveBuilder::withFinalLateralSettledChecker(const okapi::QLength &distance,
                                                                   const okapi::QSpeed &speed,
                                                                   const okapi::QTime &time)
@@ -245,4 +286,9 @@ namespace atum8
         return *this;
     }
 
+    SPDriveBuilder SPDriveBuilder::withAimFilter(SPFilter iAimFilter)
+    {
+        aimFilter = iAimFilter;
+        return *this;
+    }
 }

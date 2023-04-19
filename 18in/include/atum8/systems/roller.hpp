@@ -12,7 +12,7 @@
 #pragma once
 
 #include "atum8/misc/constants.hpp"
-#include "atum8/misc/task.hpp"
+#include "pros/misc.hpp"
 
 namespace atum8
 {
@@ -20,24 +20,22 @@ namespace atum8
      * @brief Provides the implementation for the roller.
      *
      */
-    class Roller : public Task
+    class Roller
     {
     public:
         /**
          * @brief Constructs a new Roller object.
          *
          * @param iMotor
-         * @param iOptical
-         * @param iColor
          */
-        Roller(UPMotor iMotor, UPOptical iOptical, const Color &iColor = Color::Red);
+        Roller(UPMotor iMotor);
 
         /**
-         * @brief This function will be ran in parallel to other tasks. It is responsible
-         * for turning the roller to the appropriate alliance color when requested.
-         *
+         * @brief Provides the controls for the driver controller portion.
+         * 
+         * @param master 
          */
-        void taskFn();
+        void control(pros::Controller master);
 
         /**
          * @brief Runs the roller at a given speed.
@@ -60,33 +58,8 @@ namespace atum8
          */
         void runForAt(double position, int speed = 100);
 
-        /**
-         * @brief Requests the roller to turn to the appropriate alliance color.
-         *
-         */
-        void turnToColor();
-
-        /**
-         * @brief Sets the appropriate alliance color.
-         *
-         * @param iColor
-         */
-        void setColor(const Color &iColor);
-
-        /**
-         * @brief Gets the alliance color.
-         *
-         * @return Color
-         */
-        Color getColor() const;
-
     private:
-        std::function<bool()> readWrongColor();
-        std::function<bool()> readRightColor();
         UPMotor motor;
-        UPOptical optical;
-        Color color{Color::Red};
-        bool turningToColor{false};
     };
 
     using UPRoller = std::unique_ptr<Roller>;
@@ -116,26 +89,8 @@ namespace atum8
         SPRollerBuilder withMotor(int iPort,
                                   const pros::motor_gearset_e_t &iGearset = pros::motor_gearset_e_t::E_MOTOR_GEAR_GREEN);
 
-        /**
-         * @brief Roller configured with this optical port.
-         *
-         * @param iPort
-         * @return SPRollerBuilder
-         */
-        SPRollerBuilder withOptical(int iPort);
-
-        /**
-         * @brief Roller configured with this alliance color.
-         *
-         * @param iColor
-         * @return SPRollerBuilder
-         */
-        SPRollerBuilder withColor(const Color &iColor);
-
     private:
         int motorPort;
         pros::motor_gearset_e_t gearset;
-        int opticalPort;
-        Color color;
     };
 }

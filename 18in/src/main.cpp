@@ -1,9 +1,5 @@
 #include "main.h"
 
-constexpr okapi::QAngularSpeed lowSpeed{2475_rpm};
-constexpr okapi::QAngularSpeed highSpeed{2800_rpm};
-constexpr okapi::QTime flywheelTimeout{1_s};
-
 atum8::SPPoseEstimator odometry;
 
 void initialize()
@@ -16,20 +12,26 @@ void initialize()
 		[](int control)
 		{ return "IT'S YA BOY:"; },
 		[](int control)
-		{ return "ANUBIS"; } ,
-		 [](int control)
-		 {
-			 return "X: " + std::to_string(odometry->getPosition().x.convert(okapi::inch)) + "in";
-		 },
-		 [](int control)
-		 {
-			 return "Y: " + std::to_string(odometry->getPosition().y.convert(okapi::inch)) + "in";
-		 },
-		 [](int control)
-		 {
-			 return "H: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
-		 }
-	});
+		{ return "ANUBIS"; },
+		[](int control)
+		{
+			return "X: " + std::to_string(odometry->getPosition().x.convert(okapi::inch)) + "in";
+		},
+		[](int control)
+		{
+			return "Y: " + std::to_string(odometry->getPosition().y.convert(okapi::inch)) + "in";
+		},
+		[](int control)
+		{
+			return "H: " + std::to_string(odometry->getPosition().h.convert(okapi::degree)) + "deg";
+		},
+		[](int control) {
+			return "Flywheel Speed: " + std::to_string(shooter->getSpeed().convert(okapi::rpm)) + " RPM";
+		},
+		[](int control)
+		{
+			return "# of Disks: " + std::to_string(shooter->getDisks());
+		}});
 	gui = autonSelector;
 
 	odometry = atum8::SPOdometryBuilder()
@@ -51,44 +53,51 @@ void initialize()
 													 5,
 													 0.9);
 
+	auto aimPidFF = std::make_shared<atum8::PidFF>(1.25);
+
+	auto aimFilter = std::make_shared<atum8::RollingAverage>(100);
+
 	drive = atum8::SPDriveBuilder()
-				.withLeftPorts({1, 11})
-				.withRightPorts({-10, -20})
+				.withLeftPorts({-6, 7, -8})
+				.withRightPorts({-18, 19, 20})
 				.withPoseEstimator(odometry)
+				.withVision(12)
 				.withStickFunction([](int input)
 								   { return pow(input, 3) / 16129; })
 				.withLateralController(forwardPidFF)
 				.withAngularController(turnPidFF)
+				.withAimController(aimPidFF)
 				.withFinalLateralSettledChecker(1_in, 1_inps, 0.375_s)
 				.withMidwayLateralSettledChecker(3_in)
 				.withAngularSettledChecker(1_deg, 500_degps, 0.375_s)
+				//.withAimFilter(aimFilter)
 				.build();
 
 	gui->view();
 
-	odometry->start();
+	// odometry->start();
 
-	auto flywheelVelController = std::make_shared<atum8::PidFF>(30, 0, 0, 4.05);
-	auto flywheelVelFilter = std::make_shared<atum8::RollingAverage>(15);
+	auto flywheelVelController = std::make_shared<atum8::PidFF>(0.0035, 0, 0, .0666666);
+	auto flywheelVelFilter = std::make_shared<atum8::RollingAverage>(75);
 	shooter = atum8::SPShooterBuilder()
-				  .withFlywheelMotors({16, -17})
-				  .withIndexerMotor(18)
-				  .withAngleAdjuster(20, 'A')
-				  .withIntakeMotor(13)
-				  .withIntakeAdjuster(20, 'B')
-				  .withController(flywheelVelController)
-				  .withSettledChecker(20_rpm, 20_rpmps)
+				  .withFlywheelMotors({9, 10})
+				  .withIndexerMotor(2)
+				  .withAngleAdjuster(4, 'A')
+				  .withIntakeMotor(1)
+				  .withIntakeAdjuster(4, 'B')
+				  .withLoader(4, 'C')
+				  .withPotentiometer('A', {3300, 3175, 2950, 2750, 2425})
 				  .withGearing(15.0)
+				  .withController(flywheelVelController)
+				  .withSettledChecker(10_rpm, 200_rpmps)
+				  .withMultiShotAdjustment(250_rpm)
 				  .withFilter(flywheelVelFilter)
-				  .withSlew(-100, 100)
 				  .build();
 	shooter->start();
 
 	roller = atum8::SPRollerBuilder()
-				 .withMotor(5)
-				 .withColor(atum8::Color::Red)
+				 .withMotor(3)
 				 .build();
-	roller->start();
 
 	endGame = std::make_unique<pros::ADIDigitalOut>(pros::ext_adi_port_pair_t{20, 'C'});
 }
@@ -98,6 +107,7 @@ void disabled()
 	gui = autonSelector;
 	while (true)
 	{
+		drive->setColor(autonSelector->getMatchInfo().color);
 		gui->view();
 		pros::delay(10);
 	}
@@ -139,32 +149,9 @@ void opcontrol()
 	{
 		gui->view();
 		drive->control(master);
+		shooter->control(master);
+		roller->control(master);
 
-		// // Intake Controls
-		// if (master.get_digital(DIGITAL_L1))
-		// 	intake->runIntake(127);
-		// else if (master.get_digital(DIGITAL_L2))
-		// 	intake->runIntake(-127);
-		// else
-		// 	intake->runIntake(0);
-		//
-		// // Roller Controls
-		// if (manualRoller)
-		// {
-		// 	if (master.get_digital(DIGITAL_R1))
-		// 		roller->runRoller();
-		// 	else
-		// 		roller->stopRoller();
-		// }
-		// else if (master.get_digital_new_press(DIGITAL_R1))
-		// 	roller->turnToColor();
-		//
-		// if (master.get_digital_new_press(DIGITAL_X))
-		// 	manualRoller = !manualRoller;
-		//
-		// // Shooter Controls
-		// if (master.get_digital_new_press(DIGITAL_R2))
-		// 	intake->shoot(1);
 		//
 		// if (intake->isShooting())
 		// 	readyNotified = false;
@@ -194,12 +181,10 @@ void opcontrol()
 		// 	readyNotified = false;
 		// }
 		//
-		// // End Game Controls
-		// if (master.get_digital(DIGITAL_UP) &&
-		// 	master.get_digital(DIGITAL_DOWN) &&
-		// 	master.get_digital(DIGITAL_LEFT) &&
-		// 	master.get_digital(DIGITAL_RIGHT))
-		// 	endGame->set_value(1);
+
+		if (master.get_digital(pros::E_CONTROLLER_DIGITAL_DOWN) &&
+			master.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT))
+			endGame->set_value(1);
 
 		pros::delay(atum8::stdDelay);
 	}

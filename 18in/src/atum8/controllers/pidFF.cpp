@@ -2,7 +2,12 @@
 
 namespace atum8
 {
-    PidFF::PidFF(double kP, double kI, double kD, double FF) : PidFF::PidFF{PidFF::Parameters{kP, kI, kD, FF}} {}
+    PidFF::PidFF(double kP,
+                 double kI,
+                 double kD,
+                 double FF,
+                 double pMin,
+                 double pMax) : PidFF::PidFF{PidFF::Parameters{kP, kI, kD, FF, pMin, pMax}} {}
 
     PidFF::PidFF(const PidFF::Parameters &iParams) : params{iParams} {}
 
@@ -30,7 +35,7 @@ namespace atum8
 
     double PidFF::getPIFF(double error, double reference)
     {
-        const double P{params.kP * error};
+        const double P{std::clamp(params.kP * error, params.pMin, params.pMax)};
         updateI(error);
         return P + I + params.FF * reference;
     }

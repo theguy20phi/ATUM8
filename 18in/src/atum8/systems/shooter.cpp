@@ -11,7 +11,6 @@ namespace atum8
                      SPController iVelocityController,
                      SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
                      SPPotentiometer iPotentiometer,
-                     double iIndexDistance,
                      SPFilter iFilter,
                      const okapi::QAngularSpeed &iMultiShotAdjustment,
                      SPSlewRate iSlewRate,
@@ -24,36 +23,38 @@ namespace atum8
                                         velocityController{iVelocityController},
                                         velocitySettledChecker{iVelocitySettledChecker},
                                         potentiometer{iPotentiometer},
-                                        indexDistance{iIndexDistance},
                                         filter{iFilter},
                                         multiShotAdjustment{iMultiShotAdjustment},
                                         slewRate{iSlewRate},
                                         gearing{iGearing}
     {
         flywheel->set_brake_modes(pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST);
-        addTaskFns({velocityControl(), shootingControl()});
+        addTaskFns({velocityControlTask(), shootingControlTask()});
     }
 
-    TaskFn Shooter::velocityControl()
+    TaskFn Shooter::velocityControlTask()
     {
         return [=]()
         {
+            double currentReferenceSpeed{referenceSpeed.convert(okapi::rpm)};
             while (true)
             {
+                if (slewRate)
+                    currentReferenceSpeed = slewRate->slew(referenceSpeed.convert(okapi::rpm));
+                else
+                    currentReferenceSpeed = referenceSpeed.convert(okapi::rpm);
                 const okapi::QAngularSpeed speed{getSpeed()};
                 velocitySettledChecker->isSettled(speed, referenceSpeed);
-                double output{velocityController->getOutput(speed.convert(okapi::rpm), referenceSpeed.convert(okapi::rpm))};
+                double output{velocityController->getOutput(speed.convert(okapi::rpm), currentReferenceSpeed)};
                 if (referenceSpeed == 0_rpm || output <= 0)
                     output = 0;
-                if (slewRate)
-                    output = slewRate->slew(output);
-                flywheel->move_voltage(output);
+                flywheel->move_velocity(output);
                 pros::delay(stdDelay);
             }
         };
     }
 
-    TaskFn Shooter::shootingControl()
+    TaskFn Shooter::shootingControlTask()
     {
         return [=]()
         {
@@ -76,6 +77,12 @@ namespace atum8
         };
     }
 
+    void Shooter::control(pros::Controller master)
+    {
+        intakeControls(master);
+        flywheelControls(master);
+    }
+
     void Shooter::singleShot(int iNumOfShots, const okapi::QTime &iShotTimeout)
     {
         setCommand(ShooterState::Single, iNumOfShots, iShotTimeout);
@@ -84,6 +91,18 @@ namespace atum8
     void Shooter::multiShot(int iNumOfShots, const okapi::QTime &iShotTimeout)
     {
         setCommand(ShooterState::Multi, iNumOfShots, iShotTimeout);
+    }
+
+    void Shooter::singleShotPrepare(const okapi::QAngularSpeed speed)
+    {
+        setReferenceSpeed(speed);
+        lowerAngleAdjuster();
+    }
+
+    void Shooter::multiShotPrepare(const okapi::QAngularSpeed speed)
+    {
+        setReferenceSpeed(speed);
+        raiseAngleAdjuster();
     }
 
     void Shooter::raiseAngleAdjuster()
@@ -98,7 +117,9 @@ namespace atum8
 
     void Shooter::runIntake(int input)
     {
-        indexer->move(-input);
+        if(input)
+            lowerIntake();
+        indexer->move(std::max(input, 0));
         intake->move(input);
     }
 
@@ -121,11 +142,13 @@ namespace atum8
     void Shooter::raiseLoader()
     {
         loader->set_value(1);
+        waitFor([=](){ return getDisks() == 4; }, 0.5_s);
     }
 
     void Shooter::lowerLoader()
     {
         loader->set_value(0);
+        waitFor([=](){ return getDisks() != 4; }, 2_s);
     }
 
     int Shooter::getDisks()
@@ -182,6 +205,41 @@ namespace atum8
         lowerLoader();
     }
 
+    void Shooter::intakeControls(pros::Controller master)
+    {
+        if (shooterState != ShooterState::Idle)
+            return;
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
+            raiseIntake();
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
+            raiseLoader();
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+            runIntake(127);
+        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+            runIntake(-127);
+        else
+            runIntake(0);
+    }
+
+    void Shooter::flywheelControls(pros::Controller master)
+    {
+        static bool multi{true};
+        constexpr okapi::QAngularSpeed speed{2675_rpm};
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+            multi = !multi;
+        if (multi)
+            multiShotPrepare(speed);
+        else
+            singleShotPrepare(speed);
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
+        {
+            if (multi)
+                multiShot(getDisks(), 2_s);
+            else
+                singleShot(1, 2_s);
+        }
+    }
+
     void Shooter::setCommand(const ShooterState &iShooterState,
                              int iNumOfShots,
                              const okapi::QTime &iShotTimeout)
@@ -212,30 +270,21 @@ namespace atum8
         {
             index();
             referenceSpeed += multiShotAdjustment;
+            pros::delay(stdDelay);
         }
         referenceSpeed = prevReferenceSpeed;
     }
 
     void Shooter::index()
     {
-        if (!potentiometer)
-        {
-            intake->move(-127);
-            indexer->move_relative(indexDistance, 200);
-            waitFor([=]()
-                    { return indexer->is_stopped(); },
-                    2_s);
-        }
-        else
-        {
-            intake->move(-127);
-            indexer->move(127);
-            const int goalNumOfDisks{getDisks() - 1};
-            // Arbitrary timeout given, since it should never timeout
-            waitFor([=]()
-                    { return getDisks() == goalNumOfDisks || getDisks() == 0; },
-                    2_s);
-        }
+        lowerLoader();
+        intake->move(127);
+        indexer->move(-127);
+        const int goalNumOfDisks{getDisks() - 1};
+        // Arbitrary timeout given, since it should never timeout
+        waitFor([=]()
+                { return getDisks() == goalNumOfDisks || getDisks() == 0; },
+                2_s);
         stopIntake();
     }
 
@@ -254,7 +303,6 @@ namespace atum8
                                          velocityController,
                                          velocitySettledChecker,
                                          potentiometer,
-                                         indexDistance,
                                          filter,
                                          multiShotAdjustment,
                                          slewRate,
@@ -337,12 +385,6 @@ namespace atum8
     SPShooterBuilder SPShooterBuilder::withMultiShotAdjustment(const okapi::QAngularSpeed &iMultiShotAdjustment)
     {
         multiShotAdjustment = iMultiShotAdjustment;
-        return *this;
-    }
-
-    SPShooterBuilder SPShooterBuilder::withIndexDistance(double iIndexDistance)
-    {
-        indexDistance = iIndexDistance;
         return *this;
     }
 

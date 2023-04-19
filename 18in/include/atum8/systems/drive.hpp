@@ -15,9 +15,9 @@
 #include "atum8/misc/settledChecker.hpp"
 #include "atum8/misc/slewRate.hpp"
 #include "atum8/devices/poseEstimator.hpp"
+#include "atum8/filters/filter.hpp"
 #include "pros/misc.hpp"
 #include <numeric>
-
 
 using namespace okapi::literals;
 
@@ -53,29 +53,34 @@ namespace atum8
          * @param iLeft
          * @param iRight
          * @param iPoseEstimator
+         * @param iVision
          * @param iDriverSettings
          * @param iLateralController
          * @param iAngularController
+         * @param iAimController
          * @param iFinalLateralSettledChecker
          * @param iFinalAngularSettledChecker
          * @param iMidwayLateralSettledChecker
          * @param iMidwayAngularSettledChecker
+         * @param iAimFilter
          */
         Drive(UPMotorGroup iLeft,
               UPMotorGroup iRight,
               SPPoseEstimator iPoseEstimator,
+              UPVision iVision,
               SPDriverSettings iDriverSettings,
               SPController iLateralController,
               SPController iAngularController,
+              SPController iAimController,
               SPLateralSettledChecker iFinalLateralSettledChecker,
               SPLateralSettledChecker iMidwayLateralSettledChecker,
-              SPAngularSettledChecker iAngularSettledChecker);
-              
+              SPAngularSettledChecker iAngularSettledChecker,
+              SPFilter iAimFilter);
 
         /**
          * @brief Provides the controls for the driver controlled portion of the match.
-         * 
-         * @param master 
+         *
+         * @param master
          */
         void control(pros::Controller master);
 
@@ -83,6 +88,14 @@ namespace atum8
                     const okapi::QTime &maxTime = 0_s,
                     int maxLateral = 127,
                     int maxAngular = 127);
+
+        /**
+         * @brief Returns output for aim assist (to be added to left side and subtracted
+         * from the right).
+         * 
+         * @return double 
+         */
+        double visionAim();
 
         /**
          * @brief Applies voltages to the appropriate motors given values for forward and turn.
@@ -97,6 +110,13 @@ namespace atum8
          *
          */
         void tare();
+
+        /**
+         * @brief Sets the color of the alliance.
+         * 
+         * @param iColor 
+         */
+        void setColor(const Color &iColor);
 
         /**
          * @brief Sets the brake mode of the drive; does not change driver settings!
@@ -124,12 +144,18 @@ namespace atum8
         UPMotorGroup left;
         UPMotorGroup right;
         SPPoseEstimator poseEstimator;
+        UPVision vision;
         SPDriverSettings driverSettings;
         SPController lateralController;
         SPController angularController;
+        SPController aimController;
         SPLateralSettledChecker finalLateralSettledChecker;
         SPLateralSettledChecker midwayLateralSettledChecker;
         SPAngularSettledChecker angularSettledChecker;
+        SPFilter aimFilter{std::make_shared<Filter>()};
+        Color color{Color::Red};
+        pros::vision_signature redSig;
+        pros::vision_signature blueSig;
     };
 
     using UPDrive = std::unique_ptr<Drive>;
@@ -174,6 +200,14 @@ namespace atum8
         SPDriveBuilder withPoseEstimator(SPPoseEstimator iPoseEstimator);
 
         /**
+         * @brief Drive configured with this vision sensor.
+         *
+         * @param port
+         * @return SPDriveBuilder
+         */
+        SPDriveBuilder withVision(int8_t port);
+
+        /**
          * @brief Drive configured with this stick deadzone.
          *
          * @param deadZone
@@ -211,6 +245,14 @@ namespace atum8
 
         SPDriveBuilder withAngularController(SPController iAngularController);
 
+        /**
+         * @brief Drive configured with this aim controller.
+         *
+         * @param iAimController
+         * @return SPDriveBuilder
+         */
+        SPDriveBuilder withAimController(SPController iAimController);
+
         SPDriveBuilder withFinalLateralSettledChecker(const okapi::QLength &distance,
                                                       const okapi::QSpeed &speed = 0_inps,
                                                       const okapi::QTime &time = 0_s);
@@ -221,15 +263,26 @@ namespace atum8
                                                  const okapi::QAngularSpeed &angularSpeed = 0_rpm,
                                                  const okapi::QTime &time = 0_s);
 
+        /**
+         * @brief Drive configured with this aim filter.
+         * 
+         * @param iAimFilter 
+         * @return SPDriveBuilder 
+         */
+        SPDriveBuilder withAimFilter(SPFilter iAimFilter);
+
     private:
         std::vector<int8_t> leftPorts;
         std::vector<int8_t> rightPorts;
         SPPoseEstimator poseEstimator;
+        int8_t visionPort;
         Drive::SPDriverSettings driverSettings{std::make_shared<Drive::DriverSettings>()};
         SPController lateralController;
         SPController angularController;
+        SPController aimController;
         SPLateralSettledChecker finalLateralSettledChecker;
         SPLateralSettledChecker midwayLateralSettledChecker;
         SPAngularSettledChecker angularSettledChecker;
+        SPFilter aimFilter{std::make_shared<Filter>()};
     };
 }

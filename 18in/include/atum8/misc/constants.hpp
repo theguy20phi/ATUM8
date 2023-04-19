@@ -3,7 +3,7 @@
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Provides a set of common constants, data structures, and
  * utility functions.
- * @version 0.3
+ * @version 0.4
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -18,6 +18,7 @@
 #include "pros/imu.hpp"
 #include "pros/adi.hpp"
 #include "pros/optical.hpp"
+#include "pros/vision.hpp"
 #include "okapi/api/units/QTime.hpp"
 
 using namespace okapi::literals;
@@ -103,4 +104,5 @@ namespace atum8
     using SPADIDigitalOut = std::shared_ptr<pros::ADIDigitalOut>;
     using UPADIAnalogIn = std::unique_ptr<pros::ADIAnalogIn>;
     using UPOptical = std::unique_ptr<pros::Optical>;
+    using UPVision = std::unique_ptr<pros::Vision>;
 }

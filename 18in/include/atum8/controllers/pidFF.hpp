@@ -5,7 +5,7 @@
  * proportional, integral, derivative, and feed-forward controller).
  * This can be used to drive many different systems from their current state
  * to a desirable reference state.
- * @version 0.5
+ * @version 0.6
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -39,6 +39,8 @@ namespace atum8
             double kI{0};
             double kD{0};
             double FF{0};
+            double pMin{-12000};
+            double pMax{12000};
         };
 
         /**
@@ -48,8 +50,15 @@ namespace atum8
          * @param kI
          * @param kD
          * @param FF
+         * @param pMin
+         * @param pMax
          */
-        PidFF(double kP = 0, double kI = 0, double kD = 0, double FF = 0);
+        PidFF(double kP = 0,
+              double kI = 0,
+              double kD = 0,
+              double FF = 0,
+              double pMin = -12000,
+              double pMax = 12000);
 
         /**
          * @brief Constructs a new PidFF object.

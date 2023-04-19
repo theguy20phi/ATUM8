@@ -20,6 +20,7 @@
 #include "atum8/devices/potentiometer.hpp"
 #include "okapi/api/units/QAngularSpeed.hpp"
 #include "okapi/api/units/QAngularAcceleration.hpp"
+#include "pros/misc.hpp"
 
 namespace atum8
 {
@@ -65,8 +66,7 @@ namespace atum8
                 SPADIDigitalOut iIntakeAdjuster,
                 SPController iVelocityController,
                 SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
-                SPPotentiometer iPotentiometer = nullptr,
-                double iIndexDistance = 100.0,
+                SPPotentiometer iPotentiometer,
                 SPFilter iFilter = std::make_shared<Filter>(),
                 const okapi::QAngularSpeed &iMultiShotAdjustment = 50_rpm,
                 SPSlewRate iSlewRate = nullptr,
@@ -78,7 +78,7 @@ namespace atum8
          *
          * @return TaskFn
          */
-        TaskFn velocityControl();
+        TaskFn velocityControlTask();
 
         /**
          * @brief This will be ran in parallel and will be responsible for any actions
@@ -86,7 +86,14 @@ namespace atum8
          *
          * @return TaskFn
          */
-        TaskFn shootingControl();
+        TaskFn shootingControlTask();
+
+        /**
+         * @brief Provides the controls for the drive controlled period.
+         *
+         * @param master
+         */
+        void control(pros::Controller master);
 
         /**
          * @brief Instructs the shooter to shoot a specified number of times with a timeout
@@ -105,6 +112,20 @@ namespace atum8
          * @param iShotTimeout
          */
         void multiShot(int iNumOfTimes = 1, const okapi::QTime &iShotTimeout = 0_s);
+
+        /**
+         * @brief Prepares the shooter for single shots (lowers angle adjuster, sets speed).
+         * 
+         * @param speed 
+         */
+        void singleShotPrepare(const okapi::QAngularSpeed speed);
+
+        /**
+         * @brief Prepares the shoot for multi shots (raises the angle adjuster, sets speed).
+         * 
+         * @param speed 
+         */
+        void multiShotPrepare(const okapi::QAngularSpeed speed);
 
         /**
          * @brief Raises the angle adjuster.
@@ -230,6 +251,8 @@ namespace atum8
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> getVelocitySettledChecker() const;
 
     private:
+        void intakeControls(pros::Controller master);
+        void flywheelControls(pros::Controller master);
         void setCommand(const ShooterState &iShooterState,
                         int iNumOfShots,
                         const okapi::QTime &iShotTimeout);
@@ -247,7 +270,6 @@ namespace atum8
         SPADIDigitalOut angleAdjuster;
         SPADIDigitalOut intakeAdjuster;
         SPPotentiometer potentiometer;
-        double indexDistance;
         double gearing{7.0};
         SPController velocityController;
         SPSlewRate slewRate;
@@ -388,14 +410,6 @@ namespace atum8
         SPShooterBuilder withMultiShotAdjustment(const okapi::QAngularSpeed &iMultiShotAdjustment);
 
         /**
-         * @brief Shooter configured with this index distance.
-         *
-         * @param iIndexDistance
-         * @return SPShooterBuilder
-         */
-        SPShooterBuilder withIndexDistance(double iIndexDistance);
-
-        /**
          * @brief Shooter configured with this gearing,  which is the gear ratio
          * of the Shooter (consider the motor as a green motor and a blue cartridge as a 1:3
          * ratio).
@@ -452,11 +466,10 @@ namespace atum8
         SPADIDigitalOut angleAdjuster;
         SPADIDigitalOut intakeAdjuster;
         SPPotentiometer potentiometer;
-        double indexDistance{100.0};
         double gearing{15.0};
         SPController velocityController;
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> velocitySettledChecker;
-        SPFilter filter;
+        SPFilter filter{std::make_shared<Filter>()};
         SPSlewRate slewRate;
         okapi::QAngularSpeed multiShotAdjustment{50_rpm};
     };
