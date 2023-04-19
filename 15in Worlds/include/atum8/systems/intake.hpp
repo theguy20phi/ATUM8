@@ -25,7 +25,7 @@ namespace atum8 {
     private:
     const short int longPress{ 250 };
     bool isDiskMode{ true };
-    bool is3StackMode { false };
+    bool is3StackMode { true };
     const float redRollerHue { 42.50 };
     const float blueRollerHue { 89.25 };
     const float rollerColorThreshold { 15 };
