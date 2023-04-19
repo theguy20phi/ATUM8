@@ -1,4 +1,1 @@
-Create swing turn method
-Create move to point method
-Bang Bang controller
-bool getOutput(double desired, double current, double threshold);
+Update ports for both ADI and normal ports

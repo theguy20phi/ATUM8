@@ -49,6 +49,7 @@ extern pros::ADIDigitalOut endGame;
 extern pros::ADIEncoder rightEncoder;
 extern pros::ADIEncoder leftEncoder;
 extern pros::ADIEncoder backEncoder;
+extern pros::ADIAnalogOut intakeToggler;
 
 //
 const float encoderWheelRadius{1.625}; // inches

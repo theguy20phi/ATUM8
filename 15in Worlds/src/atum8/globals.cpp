@@ -45,6 +45,7 @@ pros::ADIDigitalOut endGame('B');
 pros::ADIEncoder leftEncoder('D', 'C', false);
 pros::ADIEncoder rightEncoder('E', 'F', false);
 pros::ADIEncoder backEncoder('G', 'H', false);
+pros::ADIAnalogOut intakeToggler ({{4, 'A'}});
 
 int program{ 0 };
 double globalX;

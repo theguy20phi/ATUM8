@@ -2,8 +2,8 @@
  * @file endGame.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides a class for all of the end game methods. 
- * @version 0.2
- * @date 2023-04-01
+ * @version 0.4
+ * @date 2023-04-18
  *
  * @copyright Copyright (c) 2023
  *
@@ -22,5 +22,6 @@ public:
   void shoot();
   void retract();
 private:
+  bool isRetracted { true };
 };
 } // namespace atum8

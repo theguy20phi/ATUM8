@@ -7,10 +7,6 @@ namespace atum8 {
         catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
         while(true) {
             controller();
-            std::cout << "rotation: " << rotationSensor.get_position() << std::endl;
-            //std::cout << "angle: " << rotationSensor.get_angle() << std::endl;
-            std::cout << "very cool: " << 9.5 * rotationSensor.get_position() - 100 << std::endl;
-
             pros::delay(10);
         }
     }
