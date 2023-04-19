@@ -30,7 +30,7 @@ namespace atum8
      * @tparam Unit
      * @tparam UnitDeriv
      */
-    template <typename Unit, typename UnitDeriv>
+    template <typename Unit = double, typename UnitDeriv = double>
     class SettledChecker
     {
     public:
@@ -110,10 +110,10 @@ namespace atum8
         okapi::QTime prevTimeInBounds;
     };
 
-    template <typename Unit, typename UnitDeriv>
+    template <typename Unit = double, typename UnitDeriv = double>
     using UPSettledChecker = std::unique_ptr<SettledChecker<Unit, UnitDeriv>>;
 
-    template <typename Unit, typename UnitDeriv>
+    template <typename Unit = double, typename UnitDeriv = double>
     using SPSettledChecker = std::shared_ptr<SettledChecker<Unit, UnitDeriv>>;
 
     using UPLateralSettledChecker = UPSettledChecker<okapi::QLength, okapi::QSpeed>;

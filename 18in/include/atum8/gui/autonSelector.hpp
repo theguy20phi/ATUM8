@@ -2,7 +2,7 @@
  * @file autonSelector.hpp
  * @author Braden Pierce (bradenwepierce@gmail.com)
  * @brief Provides the autonomous routine selector.
- * @version 0.3
+ * @version 0.4
  * @date 2023-02-04
  *
  * @copyright Copyright (c) 2023
@@ -56,6 +56,20 @@ namespace atum8
          * @return MatchInfo
          */
         MatchInfo getMatchInfo() const;
+
+        /**
+         * @brief Sets the color.
+         * 
+         * @param color 
+         */
+        void setColor(const Color &color);
+
+        /**
+         * @brief Gets the color.
+         * 
+         * @return Color 
+         */
+        Color getColor() const;
 
     private:
         void changeMatchInfo(int i);

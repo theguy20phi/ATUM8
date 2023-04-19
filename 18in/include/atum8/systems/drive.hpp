@@ -16,6 +16,7 @@
 #include "atum8/misc/slewRate.hpp"
 #include "atum8/devices/poseEstimator.hpp"
 #include "atum8/filters/filter.hpp"
+#include "atum8/gui/autonSelector.hpp"
 #include "pros/misc.hpp"
 #include <numeric>
 
@@ -55,13 +56,13 @@ namespace atum8
          * @param iPoseEstimator
          * @param iVision
          * @param iDriverSettings
+         * @param iAutonSelector
          * @param iLateralController
          * @param iAngularController
          * @param iAimController
          * @param iFinalLateralSettledChecker
          * @param iFinalAngularSettledChecker
-         * @param iMidwayLateralSettledChecker
-         * @param iMidwayAngularSettledChecker
+         * @param iLateralSettledChecker
          * @param iAimFilter
          */
         Drive(UPMotorGroup iLeft,
@@ -69,11 +70,11 @@ namespace atum8
               SPPoseEstimator iPoseEstimator,
               UPVision iVision,
               SPDriverSettings iDriverSettings,
+              SPAutonSelector iAutonSelector,
               SPController iLateralController,
               SPController iAngularController,
               SPController iAimController,
-              SPLateralSettledChecker iFinalLateralSettledChecker,
-              SPLateralSettledChecker iMidwayLateralSettledChecker,
+              SPLateralSettledChecker iLateralSettledChecker,
               SPAngularSettledChecker iAngularSettledChecker,
               SPFilter iAimFilter);
 
@@ -91,9 +92,9 @@ namespace atum8
 
         /**
          * @brief Returns output for aim assist (to be added to left side and subtracted
-         * from the right).
-         * 
-         * @return double 
+         * from the right). If blocking is true, prevent further commands until settled.
+         *
+         * @return double
          */
         double visionAim();
 
@@ -113,8 +114,8 @@ namespace atum8
 
         /**
          * @brief Sets the color of the alliance.
-         * 
-         * @param iColor 
+         *
+         * @param iColor
          */
         void setColor(const Color &iColor);
 
@@ -146,11 +147,11 @@ namespace atum8
         SPPoseEstimator poseEstimator;
         UPVision vision;
         SPDriverSettings driverSettings;
+        SPAutonSelector autonSelector;
         SPController lateralController;
         SPController angularController;
         SPController aimController;
-        SPLateralSettledChecker finalLateralSettledChecker;
-        SPLateralSettledChecker midwayLateralSettledChecker;
+        SPLateralSettledChecker lateralSettledChecker;
         SPAngularSettledChecker angularSettledChecker;
         SPFilter aimFilter{std::make_shared<Filter>()};
         Color color{Color::Red};
@@ -241,8 +242,28 @@ namespace atum8
          */
         SPDriveBuilder withBrakeMode(const pros::motor_brake_mode_e &brakeMode);
 
+        /**
+         * @brief Drive configured with this auton selector.
+         * 
+         * @param iAutonSelector 
+         * @return SPDriveBuilder 
+         */
+        SPDriveBuilder withAutonSelector(SPAutonSelector iAutonSelector);
+
+        /**
+         * @brief Drive configured with this lateral controller.
+         *
+         * @param iLateralController
+         * @return SPDriveBuilder
+         */
         SPDriveBuilder withLateralController(SPController iLateralController);
 
+        /**
+         * @brief Drive configured with this angular controller.
+         *
+         * @param iAngularController
+         * @return SPDriveBuilder
+         */
         SPDriveBuilder withAngularController(SPController iAngularController);
 
         /**
@@ -253,21 +274,45 @@ namespace atum8
          */
         SPDriveBuilder withAimController(SPController iAimController);
 
-        SPDriveBuilder withFinalLateralSettledChecker(const okapi::QLength &distance,
-                                                      const okapi::QSpeed &speed = 0_inps,
-                                                      const okapi::QTime &time = 0_s);
+        /**
+         * @brief Drive configured with this lateral settled checker.
+         *
+         * @param distance
+         * @param speed
+         * @param time
+         * @return SPDriveBuilder
+         */
+        SPDriveBuilder withLateralSettledChecker(const okapi::QLength &distance,
+                                                 const okapi::QSpeed &speed = 0_inps,
+                                                 const okapi::QTime &time = 0_s);
 
-        SPDriveBuilder withMidwayLateralSettledChecker(const okapi::QLength &distance);
-
+        /**
+         * @brief Drive configured with this angular settled checker.
+         *
+         * @param angle
+         * @param angularSpeed
+         * @param time
+         * @return SPDriveBuilder
+         */
         SPDriveBuilder withAngularSettledChecker(const okapi::QAngle &angle,
                                                  const okapi::QAngularSpeed &angularSpeed = 0_rpm,
                                                  const okapi::QTime &time = 0_s);
 
         /**
+         * @brief Drive configured with this aim settled checker.
+         *
+         * @param error
+         * @param errorRate
+         * @param time
+         * @return SPDriveBuilder
+         */
+        SPDriveBuilder withAimSettledChecker(double error, double errorRate = 0, const okapi::QTime &time = 0_s);
+
+        /**
          * @brief Drive configured with this aim filter.
-         * 
-         * @param iAimFilter 
-         * @return SPDriveBuilder 
+         *
+         * @param iAimFilter
+         * @return SPDriveBuilder
          */
         SPDriveBuilder withAimFilter(SPFilter iAimFilter);
 
@@ -277,11 +322,11 @@ namespace atum8
         SPPoseEstimator poseEstimator;
         int8_t visionPort;
         Drive::SPDriverSettings driverSettings{std::make_shared<Drive::DriverSettings>()};
+        SPAutonSelector autonSelector;
         SPController lateralController;
         SPController angularController;
         SPController aimController;
-        SPLateralSettledChecker finalLateralSettledChecker;
-        SPLateralSettledChecker midwayLateralSettledChecker;
+        SPLateralSettledChecker lateralSettledChecker;
         SPAngularSettledChecker angularSettledChecker;
         SPFilter aimFilter{std::make_shared<Filter>()};
     };

@@ -13,22 +13,22 @@ namespace atum8
                  SPPoseEstimator iPoseEstimator,
                  UPVision iVision,
                  SPDriverSettings iDriverSettings,
+                 SPAutonSelector iAutonSelector,
                  SPController iLateralController,
                  SPController iAngularController,
                  SPController iAimController,
-                 SPLateralSettledChecker iFinalLateralSettledChecker,
-                 SPLateralSettledChecker iMidwayLateralSettledChecker,
+                 SPLateralSettledChecker iLateralSettledChecker,
                  SPAngularSettledChecker iAngularSettledChecker,
                  SPFilter iAimFilter) : left{std::move(iLeft)},
                                         right{std::move(iRight)},
                                         poseEstimator{iPoseEstimator},
                                         vision{std::move(iVision)},
                                         driverSettings{iDriverSettings},
+                                        autonSelector{iAutonSelector},
                                         lateralController{iLateralController},
                                         angularController{iAngularController},
                                         aimController{iAimController},
-                                        finalLateralSettledChecker{iFinalLateralSettledChecker},
-                                        midwayLateralSettledChecker{iMidwayLateralSettledChecker},
+                                        lateralSettledChecker{iLateralSettledChecker},
                                         angularSettledChecker{iAngularSettledChecker},
                                         aimFilter{iAimFilter}
     {
@@ -48,14 +48,19 @@ namespace atum8
             else
                 driverSettings->brakeMode = pros::motor_brake_mode_e::E_MOTOR_BRAKE_COAST;
         }
+        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y))
+        {
+            if (driverSettings->maxPower == 1.0)
+                driverSettings->maxPower = 0.5;
+            else
+                driverSettings->maxPower = 1.0;
+        }
         double aimAssist{0.0};
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             aimAssist = visionAim();
         const int leftInput{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
         const int rightInput{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y)};
         driverMove(leftInput + aimAssist, rightInput - aimAssist);
-        if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X))
-            color = color == Color::Red ? Color::Blue : Color::Red;
     }
 
     void Drive::moveTo(const std::vector<Position> &positions,
@@ -96,9 +101,18 @@ namespace atum8
 
     double Drive::visionAim()
     {
-        const auto goal = vision->get_by_sig(0, color == Color::Red ? redSig.id : blueSig.id);
-        const double dx{aimFilter->get(goal.x_middle_coord)};
-        return aimController->getOutput(dx);
+        if (vision->get_object_count() == 0)
+        {
+            aimController->reset();
+            return 0.0;
+        }
+        const auto redGoal = vision->get_by_sig(0, redSig.id);
+        const auto blueGoal = vision->get_by_sig(0, blueSig.id);
+        const int redGoalArea{redGoal.width * redGoal.height};
+        const int blueGoalArea{blueGoal.width * blueGoal.height};
+        const auto goal = redGoalArea > blueGoalArea ? redGoal : blueGoal;
+        const double error{aimFilter->get((double)goal.x_middle_coord)};
+        return aimController->getOutput(error);
     }
 
     void Drive::driverMove(int leftInput, int rightInput)
@@ -127,6 +141,7 @@ namespace atum8
         right->tare_position();
         lateralController->reset();
         angularController->reset();
+        aimController->reset();
         move();
     }
 
@@ -162,12 +177,8 @@ namespace atum8
                           int currentIndex,
                           int lastIndex)
     {
-        midwayLateralSettledChecker->isSettled(lateralError);
-        finalLateralSettledChecker->isSettled(lateralError);
-        return (currentIndex != lastIndex &&
-                midwayLateralSettledChecker->isSettled()) ||
-               (currentIndex == lastIndex &&
-                finalLateralSettledChecker->isSettled());
+        lateralSettledChecker->isSettled(lateralError);
+        return lateralSettledChecker->isSettled();
     }
 
     Position Drive::generateWaypoint(const Position &state, const Position &endPoint)
@@ -189,11 +200,11 @@ namespace atum8
                                        poseEstimator,
                                        std::make_unique<pros::Vision>(visionPort, pros::E_VISION_ZERO_CENTER),
                                        driverSettings,
+                                       autonSelector,
                                        lateralController,
                                        angularController,
                                        aimController,
-                                       finalLateralSettledChecker,
-                                       midwayLateralSettledChecker,
+                                       lateralSettledChecker,
                                        angularSettledChecker,
                                        aimFilter);
     }
@@ -246,6 +257,12 @@ namespace atum8
         return *this;
     }
 
+    SPDriveBuilder SPDriveBuilder::withAutonSelector(SPAutonSelector iAutonSelector)
+    {
+        autonSelector = iAutonSelector;
+        return *this;
+    }
+
     SPDriveBuilder SPDriveBuilder::withLateralController(SPController iLateralController)
     {
         lateralController = iLateralController;
@@ -264,17 +281,11 @@ namespace atum8
         return *this;
     }
 
-    SPDriveBuilder SPDriveBuilder::withFinalLateralSettledChecker(const okapi::QLength &distance,
-                                                                  const okapi::QSpeed &speed,
-                                                                  const okapi::QTime &time)
+    SPDriveBuilder SPDriveBuilder::withLateralSettledChecker(const okapi::QLength &distance,
+                                                             const okapi::QSpeed &speed,
+                                                             const okapi::QTime &time)
     {
-        finalLateralSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, speed, time);
-        return *this;
-    }
-
-    SPDriveBuilder SPDriveBuilder::withMidwayLateralSettledChecker(const okapi::QLength &distance)
-    {
-        midwayLateralSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, 0_inps, 0_s);
+        lateralSettledChecker = std::make_shared<SettledChecker<okapi::QLength, okapi::QSpeed>>(distance, speed, time);
         return *this;
     }
 

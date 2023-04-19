@@ -117,7 +117,7 @@ namespace atum8
 
     void Shooter::runIntake(int input)
     {
-        if(input)
+        if (input)
             lowerIntake();
         indexer->move(std::max(input, 0));
         intake->move(input);
@@ -132,23 +132,47 @@ namespace atum8
     void Shooter::raiseIntake()
     {
         intakeAdjuster->set_value(1);
+        intakeRaised = true;
     }
 
     void Shooter::lowerIntake()
     {
         intakeAdjuster->set_value(0);
+        intakeRaised = false;
+    }
+
+    void Shooter::toggleIntake()
+    {
+        if (intakeRaised)
+            lowerIntake();
+        else
+            raiseIntake();
     }
 
     void Shooter::raiseLoader()
     {
         loader->set_value(1);
-        waitFor([=](){ return getDisks() == 4; }, 0.5_s);
+        waitFor([=]()
+                { return getDisks() == 4; },
+                0.5_s);
+        loaderRaised = true;
     }
 
     void Shooter::lowerLoader()
     {
         loader->set_value(0);
-        waitFor([=](){ return getDisks() != 4; }, 2_s);
+        waitFor([=]()
+                { return getDisks() != 4; },
+                2_s);
+        loaderRaised = false;
+    }
+
+    void Shooter::toggleLoader()
+    {
+        if (loaderRaised)
+            lowerLoader();
+        else
+            raiseLoader();
     }
 
     int Shooter::getDisks()
@@ -210,9 +234,9 @@ namespace atum8
         if (shooterState != ShooterState::Idle)
             return;
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
-            raiseIntake();
+            toggleIntake();
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
-            raiseLoader();
+            toggleLoader();
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
             runIntake(127);
         else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
@@ -228,9 +252,15 @@ namespace atum8
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
             multi = !multi;
         if (multi)
+        {
             multiShotPrepare(speed);
+            master.print(2, 0, "MULTISHOT                ");
+        }
         else
+        {
             singleShotPrepare(speed);
+            master.print(2, 0, "SINGLE SHOT              ");
+        }
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
         {
             if (multi)

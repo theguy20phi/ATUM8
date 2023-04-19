@@ -48,4 +48,14 @@ namespace atum8
             matchInfo.routine = (Routine)(routineNumber % routineNames.size());
         }
     }
+
+    void AutonSelector::setColor(const Color &color)
+    {
+        matchInfo.color = color;
+    }
+    
+    Color AutonSelector::getColor() const
+    {
+        return matchInfo.color;
+    }
 }

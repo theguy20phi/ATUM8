@@ -165,6 +165,12 @@ namespace atum8
         void lowerIntake();
 
         /**
+         * @brief Raises the intake if down, lowers the intake if raised.
+         * 
+         */
+        void toggleIntake();
+
+        /**
          * @brief Raises the loader.
          *
          */
@@ -175,6 +181,12 @@ namespace atum8
          *
          */
         void lowerLoader();
+
+        /**
+         * @brief Raises the loader if down, lowers the loader if raised.
+         * 
+         */
+        void toggleLoader();
 
         /**
          * @brief Gets the number of disks in the indexer.
@@ -277,6 +289,8 @@ namespace atum8
         SPFilter filter;
         okapi::QAngularSpeed referenceSpeed{0_degps};
         okapi::QAngularSpeed multiShotAdjustment;
+        bool intakeRaised{false};
+        bool loaderRaised{false};
     };
 
     using UPShooter = std::unique_ptr<Shooter>;
