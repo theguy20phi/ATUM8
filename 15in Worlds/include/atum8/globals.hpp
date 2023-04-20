@@ -53,7 +53,7 @@ extern pros::ADIAnalogOut intakeToggler;
 
 //
 const float encoderWheelRadius{1.625}; // inches
-const double encoderWheelCircumference{2.3 * M_PI};//{200/25.4};
+const double encoderWheelCircumference{200/25.4};//{200/25.4};
 
 const double driveGearRatio {60.0 / 36.0};
 extern int program;
@@ -63,4 +63,10 @@ extern double globalHeadingInRadians;
 extern double globalHeadingInDegrees;
 extern double globalLinearPower;
 extern double globalTurnPower;
+extern bool globalCatapultManualMode;
+extern const short int redID;
+extern const short int blueID;
+extern const short int yellowID;
+extern const short int visionFOVWidth;
+extern const short int visionFOVHeight;
 } // namespace atum8

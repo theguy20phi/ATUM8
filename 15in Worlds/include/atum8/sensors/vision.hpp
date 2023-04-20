@@ -24,10 +24,5 @@ namespace atum8{
 
 
         private:
-        const short int redID { 1 };
-        const short int blueID { 2 };
-        const short int yellowID { 3 };
-        const short int visionFOVWidth { 316 };
-        const short int visionFOVHeight { 212 };
     };
 }

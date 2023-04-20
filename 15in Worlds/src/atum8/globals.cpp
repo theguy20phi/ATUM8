@@ -54,4 +54,11 @@ double globalHeadingInRadians;
 double globalHeadingInDegrees;
 double globalLinearPower;
 double globalTurnPower;
+bool globalCatapultManualMode { false };
+
+const short int redID{1};
+const short int blueID{2};
+const short int yellowID{3};
+const short int visionFOVWidth{316};
+const short int visionFOVHeight{212};
 } // namespace atum8

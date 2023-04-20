@@ -20,6 +20,7 @@ namespace atum8 {
     void controller();
     void automaticContolls();
     void manualControlls();
+    bool getCatapultMode();
     private:
     bool isManualMode { false };
 };
