@@ -14,7 +14,7 @@ namespace atum8 {
     void Catapult::controller(){
         if(Chris.get_digital_new_press(DIGITAL_X)) {
             isManualMode = !isManualMode;
-            globalCatapultManualMode = isManualMode;
+            globalIsCatapultManualMode = isManualMode;
         }
 
         if(isManualMode == false)

@@ -33,6 +33,7 @@ pros::Motor_Group catapultMotors({rightCatapultMotor, leftCatapultMotor});
 pros::Motor_Group intakeMotors({rightIntakeMotor, leftIntakeMotor});
 
 // Setup Sensors
+pros::GPS gpsSensor(19);
 pros::Imu imuSensorAlpha(20);
 pros::Imu imuSensorBeta(15);
 pros::Imu imuSensorCharlie(11);
@@ -40,12 +41,12 @@ pros::Optical opticalSensor(9);
 pros::Vision visionSensorGoal(20);
 pros::Vision visionSensorDisk(10);
 
-pros::ADIDigitalIn catapultStop('A');
-pros::ADIDigitalOut intakeToggler('G');
-pros::ADIEncoder leftEncoder('B', 'C', false);
-pros::ADIEncoder rightEncoder('B', 'C', false);
-pros::ADIEncoder backEncoder('B', 'C', false);
-pros::ADIAnalogOut endGame ({{4, 'B'}});
+pros::ADIDigitalIn catapultStop('G');
+pros::ADIEncoder rightEncoder('A', 'B', false);
+pros::ADIEncoder leftEncoder('C', 'D', false);
+pros::ADIEncoder backEncoder('E', 'F', false);
+pros::ADIDigitalOut endGameRight({{14, 'A'}});
+pros::ADIDigitalOut endGameLeft ({{14, 'B'}});
 
 int program{ 0 };
 double globalX;
@@ -54,11 +55,7 @@ double globalHeadingInRadians;
 double globalHeadingInDegrees;
 double globalLinearPower;
 double globalTurnPower;
-bool globalCatapultManualMode { false };
-
-const short int redID{1};
-const short int blueID{2};
-const short int yellowID{3};
-const short int visionFOVWidth{316};
-const short int visionFOVHeight{212};
+bool globalIsCatapultManualMode { false };
+bool isRedAimBotMode { true };
+pros::Mutex positionMutex;
 } // namespace atum8
