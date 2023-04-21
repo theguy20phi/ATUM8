@@ -23,9 +23,9 @@ void Drive::taskFn() {
   visionSensorGoal.set_signature(blueID, &BLUE_SIG);
 
   if (program == 1)
-    isRedMode = true;
+    isRedAimBotMode = true;
   else if (program == 2)
-    isRedMode = false;
+    isRedAimBotMode = false;
 
   while (true) {
     tankDrive();
@@ -36,11 +36,11 @@ void Drive::taskFn() {
 void Drive::tankDrive() {
   aimAssistPower = 0;
   if (Chris.get_digital_new_press(DIGITAL_Y))
-    isRedMode = !isRedMode;
+    isRedAimBotMode = !isRedAimBotMode;
   if (Chris.get_digital(DIGITAL_R2) and visionSensorGoal.get_object_count() and
-      !globalCatapultManualMode) {
+      !globalIsCatapultManualMode) {
     pros::vision_object_s_t goal =
-        visionSensorGoal.get_by_sig(0, isRedMode ? redID : blueID);
+        visionSensorGoal.get_by_sig(0, isRedAimBotMode ? redID : blueID);
     aimAssistPower =
         aimBotControllerz.getOutput(goal.x_middle_coord, visionFOVWidth * 0.5) /
         12000 * 127;
@@ -108,6 +108,7 @@ void Drive::moveToPoint(const double desiredX, const double desiredY,
   turnMaxPower = utility::rpmToPower(turnRpm);
 
   while (true) {
+    positionMutex.take();
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
 
@@ -137,8 +138,8 @@ void Drive::moveToPoint(const double desiredX, const double desiredY,
 
     setRightPower(linearOutput - turnOutput);
     setLeftPower(linearOutput + turnOutput);
-
     pros::delay(10);
+    positionMutex.give();
   }
   reset();
 }

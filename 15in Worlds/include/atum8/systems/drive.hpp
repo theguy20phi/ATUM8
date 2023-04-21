@@ -16,6 +16,7 @@
 #include "atum8/misc/task.hpp"
 #include "atum8/misc/utility.hpp"
 #include "atum8/sensors/imus.hpp"
+#include "atum8/globals.hpp"
 #include "main.h"
 
 namespace atum8 {
@@ -63,6 +64,11 @@ private:
   double headingScaleFactor;
 
   double aimAssistPower;
-  bool isRedMode{true};
+  bool isRedAimBotMode{true};
+  const short int redID{1};
+  const short int blueID{2};
+  const short int yellowID{3};
+  const short int visionFOVWidth{316};
+  const short int visionFOVHeight{212};
 };
 } // namespace atum8
