@@ -41,10 +41,13 @@ namespace atum8 {
         headingAverage = globalHeadingInRadians + deltaHeading / 2;
 
         // Update Global X Coordinate, Y Coordinate, Heading in Radians, and Heading in Degrees
+        //positionMutex.take();
         globalX += deltaX * cos(headingAverage) + deltaY * sin(headingAverage);
         globalY += deltaY * cos(headingAverage) - deltaX * sin(headingAverage);
+
         globalHeadingInRadians += deltaHeading;
         globalHeadingInDegrees = globalHeadingInRadians * 180.0 / M_PI;
+        //positionMutex.give();
     }
 
     void Odometry::setStartingPosition(double x, double y, double headingInDegrees) {
