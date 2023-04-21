@@ -5,7 +5,6 @@
 
 namespace atum8 {
 void Intake::taskFn() {
-  intakeToggler.set_value(is3StackMode);
   intakeMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
   while (true) {
     controller();
@@ -37,10 +36,6 @@ void Intake::diskControlls() {
     }
   } else {
     buttonDuration = 0;
-  }
-  if (Chris.get_digital_new_press(DIGITAL_B)) {
-    is3StackMode = !is3StackMode;
-    intakeToggler.set_value(is3StackMode);
   }
 }
 
