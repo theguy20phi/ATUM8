@@ -11,18 +11,28 @@ void EndGame::taskFn() {
 }
 void EndGame::controller() { 
   if(Chris.get_digital_new_press(DIGITAL_UP)) {
-    isRetracted = !isRetracted;
-    endGame.set_value(isRetracted);
+    isRightRetracted = !isRightRetracted;
+    endGameRight.set_value(!isRightRetracted);
+    std::cout << "rightEndGame: " << isRightRetracted <<  std::endl;
+  }
+
+  if(Chris.get_digital_new_press(DIGITAL_LEFT)) {
+    isLeftRetracted = !isLeftRetracted;
+    endGameLeft.set_value(!isLeftRetracted);
+    std::cout << "leftEndGame: " << isLeftRetracted << std::endl;
   }
 }
 
+
 void EndGame::shoot() {
-  endGame.set_value(true);
+  endGameRight.set_value(true);
+  endGameLeft.set_value(true);
   std::cout << "shooting" << std::endl;
 }
 
-void EndGame::retract() {
-  endGame.set_value(false);
+void EndGame::retract() { 
+  endGameRight.set_value(false);
+  endGameLeft.set_value(false);
   std::cout << "retracting" << std::endl;
 }
 } // namespace atum8

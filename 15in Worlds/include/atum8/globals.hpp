@@ -3,8 +3,8 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the setup for the motors, controller, and sensors. 
  *        It also provides globals variables used throughout the program. 
- * @version 0.4
- * @date 2023-04-12
+ * @version 0.5
+ * @date 2023-04-21
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -38,6 +38,7 @@ extern pros::Motor_Group driveMotors;
 extern pros::Motor_Group catapultMotors;
 extern pros::Motor_Group intakeMotors;
 
+extern pros::GPS gpsSensor;
 extern pros::Imu imuSensorAlpha;
 extern pros::Imu imuSensorBeta;
 extern pros::Imu imuSensorCharlie;
@@ -45,7 +46,8 @@ extern pros::Optical opticalSensor;
 extern pros::Vision visionSensorGoal;
 extern pros::Vision visionSensorDisk;
 extern pros::ADIDigitalIn catapultStop;
-extern pros::ADIDigitalOut endGame;
+extern pros::ADIDigitalOut endGameRight;
+extern pros::ADIDigitalOut endGameLeft;
 extern pros::ADIEncoder rightEncoder;
 extern pros::ADIEncoder leftEncoder;
 extern pros::ADIEncoder backEncoder;
@@ -63,10 +65,7 @@ extern double globalHeadingInRadians;
 extern double globalHeadingInDegrees;
 extern double globalLinearPower;
 extern double globalTurnPower;
-extern bool globalCatapultManualMode;
-extern const short int redID;
-extern const short int blueID;
-extern const short int yellowID;
-extern const short int visionFOVWidth;
-extern const short int visionFOVHeight;
+extern bool globalIsCatapultManualMode;
+extern bool isRedAimBotMode;
+extern pros::Mutex positionMutex;
 } // namespace atum8
