@@ -19,9 +19,9 @@
 namespace atum8 {
 class Vision : Drive {
 public:
-  void redAimBot();
-  void blueAimBot();
-  void diskAimBot();
+  void redAimBot(const double secThreshold);
+  void blueAimBot(const double secThreshold);
+  void diskAimBot(const double secThreshold);
 
 private:
   const short int redID{1};
@@ -29,5 +29,6 @@ private:
   const short int yellowID{3};
   const short int visionFOVWidth{316};
   const short int visionFOVHeight{212};
+  double msCounter;
 };
 } // namespace atum8

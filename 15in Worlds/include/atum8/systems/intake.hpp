@@ -2,7 +2,7 @@
  * @file intake.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for the intake subsystem.
- * @version 0.6
+ * @version 0.7
  * @date 2023-04-21
  * 
  * @copyright Copyright (c) 2023
@@ -23,13 +23,14 @@ namespace atum8 {
     void in();
     void out();
     void stop();
-    void setRollerToRed();
-    void setRollerToBlue();
+    void setRollerToRed(const double secThreshold);
+    void setRollerToBlue(const double secThreshold);
     private:
     const short int longPress{ 250 };
     bool isDiskMode{ true };
     const float redRollerHue { 42.50 };
     const float blueRollerHue { 89.25 };
     const float rollerColorThreshold { 15 };
+    double msCounter;
 };
 }

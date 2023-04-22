@@ -61,10 +61,17 @@ void Intake::stop(){
   intakeMotors.move_voltage(0);
 }
 
-void Intake::setRollerToRed() {
+void Intake::setRollerToRed(const double secThreshold) {
+  msCounter = 0;
   while (opticalSensor.get_hue() < blueRollerHue - rollerColorThreshold) {
     driveMotors.move_voltage(-2000);
     intakeMotors.move_voltage(-12000);
+    
+    msCounter += 10;
+    if(msCounter/1000 > secThreshold)
+      break;
+    pros::delay(10);
+
   }
   intakeMotors.move_voltage(3000);
   pros::delay(500);
@@ -72,10 +79,16 @@ void Intake::setRollerToRed() {
   intakeMotors.move_voltage(0);
 }
 
-void Intake::setRollerToBlue() {
+void Intake::setRollerToBlue(const double secThreshold) {
+  msCounter = 0;
   while (opticalSensor.get_hue() > redRollerHue + rollerColorThreshold) {
     driveMotors.move_voltage(-2000);
     intakeMotors.move_voltage(-12000);
+    
+    msCounter += 10;
+    if(msCounter/1000 > secThreshold)
+      break;
+    pros::delay(10);
   }
   intakeMotors.move_voltage(3000);
   pros::delay(500);
