@@ -37,14 +37,14 @@ pros::GPS gpsSensor(19);
 pros::Imu imuSensorAlpha(20);
 pros::Imu imuSensorBeta(15);
 pros::Imu imuSensorCharlie(11);
-pros::Optical opticalSensor(9);
+pros::Optical opticalSensor(8);
 pros::Vision visionSensorGoal(20);
-pros::Vision visionSensorDisk(10);
+pros::Vision visionSensorDisk(9);
 
 pros::ADIDigitalIn catapultStop('H');
-pros::ADIEncoder rightEncoder('A', 'B', false);
+pros::ADIEncoder rightEncoder('A', 'B', true);
 pros::ADIEncoder leftEncoder('C', 'D', false);
-pros::ADIEncoder backEncoder('E', 'F', false);
+pros::ADIEncoder backEncoder('E', 'F', true);
 pros::ADIDigitalOut endGameRight({{14, 'A'}});
 pros::ADIDigitalOut endGameLeft ({{14, 'B'}});
 

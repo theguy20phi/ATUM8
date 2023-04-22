@@ -6,10 +6,10 @@
 
 namespace atum8 {
 Pid linearController(800, 1, 8.8, 0.5, .05);
-Pid turnController(270, 0.8, 0, 1, .05);
-Pid linearMTPController(800, 1, 0, 2, .05);
-Pid turnMTPController(300, 0, 0, 1, .05);
-Pid turnTPController(300, 0, 0, 1, .05);
+Pid turnController(200, 0, 3, 1, .05);
+Pid linearMTPController(800, 1, 0, .5, .05);
+Pid turnMTPController(200, 0, 3, 1, .05);
+Pid turnTPController(200, 0, 3, 1, .05);
 Pid aimBotControllerz(50, 1, 0, 5, 0.5);
 
 void Drive::taskFn() {
@@ -146,13 +146,11 @@ void Drive::moveToPoint(const double desiredX, const double desiredY,
       catapultMotors.move_voltage(0);
     }
 
-    setRightPower(SlewRate::getOutput(getRightPower(),
-                                      linearOutput - turnOutput, acceleration));
-    setLeftPower(SlewRate::getOutput(getRightPower(),
-                                      linearOutput + turnOutput, acceleration));
+    //setRightPower(SlewRate::getOutput(getRightPower(),linearOutput - turnOutput, acceleration));
+    //setLeftPower(SlewRate::getOutput(getLeftPower(),linearOutput + turnOutput, acceleration));
 
-    //setRightPower(linearOutput - turnOutput);
-    //setLeftPower(linearOutput + turnOutput);
+    setRightPower(linearOutput - turnOutput);
+    setLeftPower(linearOutput + turnOutput);
     pros::delay(10);
     // positionMutex.give();
   }
@@ -166,20 +164,24 @@ void Drive::turnToPoint(const double desiredX, const double desiredY,
   while (true) {
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
-    output = turnTPController.getOutput(utility::constrain180(
+
+    turnError = utility::constrain180(
         utility::convertRadianToDegree(atan2(errorX, errorY)) -
-        globalHeadingInDegrees));
-    output = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
+        globalHeadingInDegrees);
+    //turnError = utility::constrain90(turnError);
+
+    output = turnTPController.getOutput(turnError);
+    output = utility::clamp(output, -turnMaxPower, turnMaxPower);
 
     // Break Conditions
     if (turnTPController.isSettled())
       break;
+    msCounter += 10;
     if (msCounter / 1000 > secThreshold)
       break;
 
-    setRightPower(SlewRate::getOutput(getRightPower(), - output, acceleration));
-    setLeftPower(SlewRate::getOutput(getRightPower(), output, acceleration));
-
+    setRightPower(-output);
+    setLeftPower(output);
     pros::delay(10);
   }
   reset();
@@ -208,8 +210,8 @@ void Drive::turnToAngle(const double angle, const double rpm, const double accel
       catapultMotors.move_voltage(0);
     }
 
-    setRightPower(SlewRate::getOutput(getRightPower(), - output, acceleration));
-    setLeftPower(SlewRate::getOutput(getRightPower(), output, acceleration));
+    setRightPower(-output);
+    setLeftPower(output);
     pros::delay(10);
   }
   reset();

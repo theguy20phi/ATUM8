@@ -12,6 +12,10 @@ namespace atum8 {
 
     void Odometry::trackPosition() {
         // Calculuate Delta Right, Delta Left, and Delta Back
+        //std::cout << "Right: " << rightEncoder.get_value() << std::endl;
+        //std::cout << "Left: " << leftEncoder.get_value() << std::endl;
+        //std::cout << "Back: " << backEncoder.get_value() << std::endl;
+
         rightPosition = (rightEncoder.get_value() * encoderWheelCircumference * multiplier);
         leftPosition = (leftEncoder.get_value() * encoderWheelCircumference * multiplier);
         backPosition = (backEncoder.get_value() * encoderWheelCircumference * multiplier);

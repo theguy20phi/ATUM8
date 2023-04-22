@@ -28,9 +28,9 @@ namespace atum8{
 
         private:
         double multiplier {1.0 / 2048 / 4};
-        const float sR{ 3.5 };
-        const float sL { 3.5 };
-        const float sS { 0.5 };
+        const float sR{ 3.0078125 };
+        const float sL { 3.0078125 };
+        const float sS { 0.40625 };
 
         double rightPosition;
         double leftPosition;
