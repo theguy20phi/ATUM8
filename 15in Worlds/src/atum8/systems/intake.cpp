@@ -71,7 +71,6 @@ void Intake::setRollerToRed(const double secThreshold) {
     if(msCounter/1000 > secThreshold)
       break;
     pros::delay(10);
-
   }
   intakeMotors.move_voltage(3000);
   pros::delay(500);
