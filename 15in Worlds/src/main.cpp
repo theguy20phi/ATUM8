@@ -51,6 +51,10 @@ void competition_initialize() {}
 void autonomous() {
   odometry.start();
   debugger.start();
+  intake.setRollerToRed(2);
+  //drive.moveToPoint(24, 24, 100, 200, 600, 5);
+  //drive.turnToAngle(0, 100, 600, 60);
+  //drive.turnToPoint(24, 24, 100, 600, 2);
 }
 
 void opcontrol() {
