@@ -12,11 +12,11 @@
 
 #pragma once
 #include "atum8/algorithms/pid.hpp"
+#include "atum8/globals.hpp"
 #include "atum8/misc/slewRate.hpp"
 #include "atum8/misc/task.hpp"
 #include "atum8/misc/utility.hpp"
 #include "atum8/sensors/imus.hpp"
-#include "atum8/globals.hpp"
 #include "main.h"
 
 namespace atum8 {
@@ -31,11 +31,12 @@ public:
                const double secThreshold);
   void moveToPoint(const double desiredX, const double desiredY,
                    const double linearRpm, const double turnRpm,
-                   const double secThreshold);
+                   const double acceleration, const double secThreshold);
   void turnToPoint(const double desiredX, const double desiredY,
-                   const double rpm, const double secThreshold);
-  void turnToAngle(const double angle, const double rpm,
+                   const double rpm, const double acceleration,
                    const double secThreshold);
+  void turnToAngle(const double angle, const double rpm,
+                   const double acceleration, const double secThreshold);
   double getRightPower();
   double getLeftPower();
   double getEncoderAverages();

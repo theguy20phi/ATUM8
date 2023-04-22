@@ -102,13 +102,13 @@ void Drive::turnPID(const double angle, const double rpm,
 
 void Drive::moveToPoint(const double desiredX, const double desiredY,
                         const double linearRpm, const double turnRpm,
-                        const double secThreshold) {
+                        const double acceleration, const double secThreshold) {
   reset();
   linearMaxPower = utility::rpmToPower(linearRpm);
   turnMaxPower = utility::rpmToPower(turnRpm);
 
   while (true) {
-    positionMutex.take();
+    // positionMutex.take();
     errorX = desiredX - globalX;
     errorY = desiredY - globalY;
 
@@ -131,28 +131,36 @@ void Drive::moveToPoint(const double desiredX, const double desiredY,
                        fabs(headingScaleFactor) * linearMaxPower);
     turnOutput = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
+    // Break Conditions
     if (linearMTPController.isSettled())
       break;
+    msCounter += 10;
     if (msCounter / 1000 > secThreshold)
       break;
 
+    // Automatically bring the Catapult down
     if (!catapultStop.get_value()) {
       catapultMotors.move_voltage(12000);
-    }else {
+    } else {
       catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
       catapultMotors.move_voltage(0);
     }
 
-    setRightPower(linearOutput - turnOutput);
-    setLeftPower(linearOutput + turnOutput);
+    setRightPower(SlewRate::getOutput(getRightPower(),
+                                      linearOutput - turnOutput, acceleration));
+    setLeftPower(SlewRate::getOutput(getRightPower(),
+                                      linearOutput + turnOutput, acceleration));
+
+    //setRightPower(linearOutput - turnOutput);
+    //setLeftPower(linearOutput + turnOutput);
     pros::delay(10);
-    positionMutex.give();
+    // positionMutex.give();
   }
   reset();
 }
 
 void Drive::turnToPoint(const double desiredX, const double desiredY,
-                        const double rpm, const double secThreshold) {
+                        const double rpm, const double acceleration, const double secThreshold) {
   reset();
   turnMaxPower = utility::rpmToPower(rpm);
   while (true) {
@@ -163,20 +171,21 @@ void Drive::turnToPoint(const double desiredX, const double desiredY,
         globalHeadingInDegrees));
     output = utility::clamp(turnOutput, -turnMaxPower, turnMaxPower);
 
-    // if(turnTPController.isSettled())
-    // break;
-    // if (msCounter / 1000 > secThreshold)
-    // break;
+    // Break Conditions
+    if (turnTPController.isSettled())
+      break;
+    if (msCounter / 1000 > secThreshold)
+      break;
 
-    setRightPower(-output);
-    setLeftPower(output);
+    setRightPower(SlewRate::getOutput(getRightPower(), - output, acceleration));
+    setLeftPower(SlewRate::getOutput(getRightPower(), output, acceleration));
 
     pros::delay(10);
   }
   reset();
 }
 
-void Drive::turnToAngle(const double angle, const double rpm,
+void Drive::turnToAngle(const double angle, const double rpm, const double acceleration,
                         const double secThreshold) {
   reset();
   turnMaxPower = utility::rpmToPower(rpm);
@@ -184,20 +193,23 @@ void Drive::turnToAngle(const double angle, const double rpm,
     output = turnController.getOutput(
         utility::constrain180(angle - globalHeadingInDegrees));
 
-    if(turnController.isSettled())
+    // Break Conditions
+    if (turnController.isSettled())
       break;
+    msCounter += 10;
     if (msCounter / 1000 > secThreshold)
       break;
-    
+
+    // Automatically bring the Catapult down
     if (!catapultStop.get_value()) {
       catapultMotors.move_voltage(12000);
-    }else {
+    } else {
       catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
       catapultMotors.move_voltage(0);
     }
 
-    setRightPower(-output);
-    setLeftPower(output);
+    setRightPower(SlewRate::getOutput(getRightPower(), - output, acceleration));
+    setLeftPower(SlewRate::getOutput(getRightPower(), output, acceleration));
     pros::delay(10);
   }
   reset();
