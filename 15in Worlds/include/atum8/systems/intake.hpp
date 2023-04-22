@@ -2,8 +2,8 @@
  * @file intake.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for the intake subsystem.
- * @version 0.5
- * @date 2023-04-20
+ * @version 0.6
+ * @date 2023-04-21
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,6 +20,9 @@ namespace atum8 {
     void controller();
     void diskControlls();
     void rollerControlls();
+    void in();
+    void out();
+    void stop();
     void setRollerToRed();
     void setRollerToBlue();
     private:

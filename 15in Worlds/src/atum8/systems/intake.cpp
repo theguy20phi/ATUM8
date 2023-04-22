@@ -48,6 +48,19 @@ void Intake::rollerControlls() {
     intakeMotors.move_voltage(0);
 }
 
+void Intake::in() {
+  intakeMotors.move_voltage(12000);
+}
+
+void Intake::out() {
+  intakeMotors.move_voltage(-12000);
+}
+
+void Intake::stop(){
+  intakeMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
+  intakeMotors.move_voltage(0);
+}
+
 void Intake::setRollerToRed() {
   while (opticalSensor.get_hue() < blueRollerHue - rollerColorThreshold) {
     driveMotors.move_voltage(-2000);

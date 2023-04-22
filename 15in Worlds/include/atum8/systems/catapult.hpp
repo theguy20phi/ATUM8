@@ -2,8 +2,8 @@
  * @file catapult.hpp
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for the catapult subsystem.
- * @version 0.3
- * @date 2023-04-01
+ * @version 0.4
+ * @date 2023-04-21
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -20,7 +20,7 @@ namespace atum8 {
     void controller();
     void automaticContolls();
     void manualControlls();
-    bool getCatapultMode();
+    void shoot();
     private:
     bool isManualMode { false };
 };

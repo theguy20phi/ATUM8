@@ -51,14 +51,10 @@ void competition_initialize() {}
 void autonomous() {
   odometry.start();
   debugger.start();
-  // intake.setRollerToRed();
-
-  // drive.moveToPoint(24, 24, 200, 200, 3);
-  // drive.turnToPoint(0, 0, 200, 3);
-  // drive.turnToAngle(180, 200, 2);
 }
 
 void opcontrol() {
+  // Stops the Catapult from shooting right from the start
   pros::delay(200);
   drive.start();
   catapult.start();

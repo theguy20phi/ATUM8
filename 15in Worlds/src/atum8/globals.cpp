@@ -41,7 +41,7 @@ pros::Optical opticalSensor(9);
 pros::Vision visionSensorGoal(20);
 pros::Vision visionSensorDisk(10);
 
-pros::ADIDigitalIn catapultStop('G');
+pros::ADIDigitalIn catapultStop('H');
 pros::ADIEncoder rightEncoder('A', 'B', false);
 pros::ADIEncoder leftEncoder('C', 'D', false);
 pros::ADIEncoder backEncoder('E', 'F', false);

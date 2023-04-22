@@ -136,6 +136,13 @@ void Drive::moveToPoint(const double desiredX, const double desiredY,
     if (msCounter / 1000 > secThreshold)
       break;
 
+    if (!catapultStop.get_value()) {
+      catapultMotors.move_voltage(12000);
+    }else {
+      catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
+      catapultMotors.move_voltage(0);
+    }
+
     setRightPower(linearOutput - turnOutput);
     setLeftPower(linearOutput + turnOutput);
     pros::delay(10);
@@ -176,6 +183,19 @@ void Drive::turnToAngle(const double angle, const double rpm,
   while (true) {
     output = turnController.getOutput(
         utility::constrain180(angle - globalHeadingInDegrees));
+
+    if(turnController.isSettled())
+      break;
+    if (msCounter / 1000 > secThreshold)
+      break;
+    
+    if (!catapultStop.get_value()) {
+      catapultMotors.move_voltage(12000);
+    }else {
+      catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
+      catapultMotors.move_voltage(0);
+    }
+
     setRightPower(-output);
     setLeftPower(output);
     pros::delay(10);

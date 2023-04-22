@@ -44,4 +44,9 @@ namespace atum8 {
         else
             catapultMotors.move_voltage(0);
     }
+
+    void Catapult::shoot() {
+        catapultMotors.move_voltage(12000);
+        pros::delay(200);
+    }
 }
