@@ -3,6 +3,9 @@
 auto doneShooting = []()
 { return !shooter->isShooting(); };
 
+auto doneTurningRoller = []()
+{ return roller->getState() == atum8::Roller::RollerState::Idle; };
+
 void initialize()
 {
 
@@ -176,16 +179,18 @@ void initializeLCD()
 
 void skills()
 {
-	odometry->setPosition({0_tile, 0_tile, 0_deg}); // MEASURE ME!
-	shooter->singleShotPrepare(2565_rpm);			// Good starting value, adjust
+	odometry->setPosition({63_in, -.5_in, -6_deg});
+	shooter->singleShotPrepare(2565_rpm);
+	shooter->runIntake();
 	shooter->raiseLoader();
-	pros::delay(2000);
+	pros::delay(1000);
 	shooter->singleShot(shooter->getDisks());
 	atum8::waitFor(doneShooting);
 	for (int i{0}; i < 2; i++)
 	{
+		shooter->runIntake();
 		shooter->raiseLoader();
-		pros::delay(5000);
+		pros::delay(3000);
 		shooter->singleShot(shooter->getDisks());
 		atum8::waitFor(doneShooting);
 	}
@@ -193,29 +198,32 @@ void skills()
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
 	shooter->raiseIntake();
 	drive->moveTo({1.5_tile, -0.5_tile}, 0_s, false, 80, 127, diskOffset);
-	shooter->runIntake();
+	getThreeStack();
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
-	drive->moveTo({2.5_tile, 0.5_tile});
-	drive->pointAt(goal, 0_s, false, true);
+	drive->moveTo({2.5_tile, 0.75_tile});
+	drive->pointAt(goal, 2_s, false, false);
 	shooter->multiShot(shooter->getDisks());
 	atum8::waitFor(doneShooting);
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
 	shooter->raiseIntake();
 	drive->moveTo({1.5_tile, -1.5_tile}, 0_s, false, 80, 127, diskOffset);
-	shooter->runIntake();
+	getThreeStack();
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
-	drive->moveTo({2.5_tile, 0.5_tile});
-	drive->pointAt(goal, 0_s, false, true);
+	drive->moveTo({2.5_tile, 0.75_tile});
+	drive->pointAt(goal, 2_s, false, false);
 	shooter->multiShot(shooter->getDisks());
 	atum8::waitFor(doneShooting);
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
-	shooter->runIntake();
 	drive->moveTo({2_tile, -2_tile});
-	drive->moveTo({5_tile, -2_tile}, 10_s, true, 30);
+	drive->moveTo({5_tile, -2_tile}, 3_s, true, 30);
 	roller->setState(atum8::Roller::RollerState::TurningToColor);
+	drive->move(-30);
+	atum8::waitFor(doneTurningRoller);
 	drive->moveTo({2_tile, -2_tile});
-	drive->moveTo({2_tile, -5_tile}, 10_s, true, 30);
+	drive->moveTo({2_tile, -5_tile}, 3_s, true, 30);
 	roller->setState(atum8::Roller::RollerState::TurningToColor);
+	drive->move(-30);
+	atum8::waitFor(doneTurningRoller);
 	drive->moveTo({2_tile, -2_tile});
 	drive->pointAt({0_in, 0_in});
 	endGame->set_value(1);
