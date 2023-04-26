@@ -5,11 +5,15 @@ namespace atum8
     Odometry::Odometry(UPOdometer iLeft,
                        UPOdometer iRight,
                        UPOdometer iSide,
-                       const Position &startingPosition) : left{std::move(iLeft)},
-                                                           right{std::move(iRight)},
-                                                           side{std::move(iSide)},
-                                                           PoseEstimator(startingPosition)
+                       UPImus iImus,
+                       double iImuTrust) : left{std::move(iLeft)},
+                                           right{std::move(iRight)},
+                                           side{std::move(iSide)},
+                                           imus{std::move(iImus)},
+                                           imuTrust{iImuTrust}
     {
+        if(imus)
+            imus->reset();
         addTaskFns({track()});
     }
 
@@ -20,20 +24,25 @@ namespace atum8
             const okapi::QLength baseWidth = left->getDistanceToCenter() + right->getDistanceToCenter();
             while (true)
             {
+                Position currentPosition = getPosition();
                 const okapi::QLength dL = left->getDistance();
                 const okapi::QLength dR = right->getDistance();
-                const okapi::QAngle dh{(dL - dR) / baseWidth * okapi::radian};
+                okapi::QAngle dh{(dL - dR) / baseWidth * okapi::radian};
+                if (imus)
+                    dh = imuTrust * imus->get_delta() + (1 - imuTrust) * dh;
                 okapi::QLength dx{side->getDistance()};
                 okapi::QLength dy{dR};
                 if (dh != 0_deg)
                 {
-                    dx = okapi::inch * 2 * okapi::sin(dh / 2) * (dx.convert(okapi::inch) / dh.convert(okapi::radian) + side->getDistanceToCenter().convert(okapi::inch));
-                    dy = okapi::inch * 2 * okapi::sin(dh / 2) * (dy.convert(okapi::inch) / dh.convert(okapi::radian) + right->getDistanceToCenter().convert(okapi::inch));
+                    dx = 2_in * okapi::sin(dh / 2) * (dx.convert(okapi::inch) / dh.convert(okapi::radian) + side->getDistanceToCenter().convert(okapi::inch));
+                    dy = 2_in * okapi::sin(dh / 2) * (dy.convert(okapi::inch) / dh.convert(okapi::radian) + right->getDistanceToCenter().convert(okapi::inch));
                 }
-                const okapi::QAngle hAvg = position.h + dh / 2;
-                position.x += dx * okapi::cos(hAvg) + dy * okapi::sin(hAvg);
-                position.y += dy * okapi::cos(hAvg) - dx * okapi::sin(hAvg);
-                position.h += dh;
+                const okapi::QAngle hAvg = currentPosition.h + dh / 2;
+                currentPosition.x += dx * okapi::cos(hAvg) + dy * okapi::sin(hAvg);
+                currentPosition.y += dy * okapi::cos(hAvg) - dx * okapi::sin(hAvg);
+                currentPosition.h += dh;
+                currentPosition.h = okapi::OdomMath::constrainAngle360(currentPosition.h);
+                setPosition(currentPosition);
                 pros::delay(stdDelay);
             }
         };
@@ -41,10 +50,11 @@ namespace atum8
 
     SPOdometry SPOdometryBuilder::build() const
     {
-        return std::make_unique<Odometry>(std::make_unique<Odometer>(leftA, leftB, (leftReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, width / 2}),
-                                          std::make_unique<Odometer>(rightA, rightB, (rightReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, width / 2}),
-                                          std::make_unique<Odometer>(sideA, sideB, (sideReversed ? -1 : 1) * encoderMultiplier, Odometer::Dimensions{circum, sideDistanceToCenter}),
-                                          startingPosition);
+        return std::make_unique<Odometry>(std::make_unique<Odometer>(leftA, leftB, encoderMultiplier, Odometer::Dimensions{circum, width / 2}, leftReversed),
+                                          std::make_unique<Odometer>(rightA, rightB, encoderMultiplier, Odometer::Dimensions{circum, width / 2}, rightReversed),
+                                          std::make_unique<Odometer>(sideA, sideB, encoderMultiplier, Odometer::Dimensions{circum, sideDistanceToCenter}, sideReversed),
+                                          std::make_unique<Imus>(imuPorts),
+                                          imuTrust);
     }
 
     SPOdometryBuilder SPOdometryBuilder::withLeft(char iLeftA, char iLeftB, bool reversed)
@@ -93,9 +103,10 @@ namespace atum8
         return *this;
     }
 
-    SPOdometryBuilder SPOdometryBuilder::withStartingPosition(const Position &iStartingPosition)
+    SPOdometryBuilder SPOdometryBuilder::withImus(const std::vector<int> &iImuPorts, double iImuTrust)
     {
-        startingPosition = iStartingPosition;
+        imuPorts = iImuPorts;
+        imuTrust = iImuTrust;
         return *this;
     }
 }

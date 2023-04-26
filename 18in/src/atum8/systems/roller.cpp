@@ -17,38 +17,71 @@ namespace atum8
         motor->set_brake_mode(pros::motor_brake_mode_e::E_MOTOR_BRAKE_BRAKE);
         opticalA->set_led_pwm(100);
         opticalB->set_led_pwm(100);
+        addTaskFns({rollerControlTask()});
+    }
+
+    TaskFn Roller::rollerControlTask()
+    {
+        return [=]() {
+            while(true) {
+                switch(rollerState) {
+                    case RollerState::TurningToColor:
+                        turnToColor();
+                        break;
+                    case RollerState::Turning:
+                        runRoller();
+                        break;
+                    default:
+                        stopRoller();
+                        break;
+                }
+                pros::delay(stdDelay);
+            }
+        };
+    }
+
+    void Roller::setState(const Roller::RollerState &iRollerState)
+    {
+        rollerState = iRollerState;
+    }
+
+    Roller::RollerState Roller::getState() const 
+    {
+        return rollerState;
     }
 
     void Roller::control(pros::Controller master)
     {
-        static bool automatic{true};
+        static bool automatic{false};
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
             automatic = !automatic;
-        if (automatic)
-            turnToColor(false);
-        else if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
-            runRoller(127);
+        if (master.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+        {
+
+            if (automatic)
+                setState(RollerState::TurningToColor);
+            else
+                setState(RollerState::Turning);
+        }
         else
-            runRoller(0);
+            setState(RollerState::Idle);
     }
 
-    void Roller::turnToColor(bool blocking)
+    void Roller::turnToColor()
     {
-        if (opticalA->get_proximity() < 255 / 2 && opticalB->get_proximity() < 255 / 2)
-        {
-            stopRoller();
-            return;
-        }
+        runRoller(-100);
+        waitFor([=]()
+                { return !isCorrectColor(); },
+                2_s);
         runRoller();
-        if (blocking)
-        {
-            waitFor([=]()
-                    { return isCorrectColor(); },
-                    2_s);
-            stopRoller();
-        }
-        else if (isCorrectColor())
-            stopRoller();
+        waitFor([=]()
+                { return isCorrectColor(); },
+                2_s);
+        waitFor([=]()
+                { return !isCorrectColor(); },
+                2_s);
+        stopRoller();
+        setState(RollerState::Idle);
     }
 
     void Roller::runRoller(int speed)
@@ -59,11 +92,6 @@ namespace atum8
     void Roller::stopRoller()
     {
         motor->move(0);
-    }
-
-    void Roller::runForAt(double position, int velocity)
-    {
-        motor->move_relative(position, velocity);
     }
 
     bool Roller::isCorrectColor()
@@ -115,5 +143,4 @@ namespace atum8
         blueHue = iBlueHue;
         return *this;
     }
-
 }

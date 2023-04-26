@@ -58,43 +58,73 @@ namespace atum8
         double aimAssist{0.0};
         if (master.get_digital(pros::E_CONTROLLER_DIGITAL_R2))
             aimAssist = visionAim();
-        const int leftInput{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
-        const int rightInput{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y)};
-        driverMove(leftInput + aimAssist, rightInput - aimAssist);
+        const int forward{master.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)};
+        const int turn{master.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)};
+        driverMove(forward, turn + aimAssist);
     }
 
-    void Drive::moveTo(const std::vector<Position> &positions,
+    void Drive::moveTo(Position target,
                        const okapi::QTime &maxTime,
+                       bool reversed,
                        int maxLateral,
-                       int maxAngular)
+                       int maxAngular,
+                       const okapi::QLength &offset)
     {
         tare();
         const okapi::QTime startTime{pros::millis() * okapi::millisecond};
-        for (int i{0}; i < positions.size(); i++)
+        pointAt(target, maxTime, reversed, false, maxAngular);
+        target = accountForSide(target, autonSelector->getColor());
+        Position state{poseEstimator->getPosition()};
+        if (reversed)
+            state.h += 180_deg;
+        const Position initial{state.x, state.y};
+        okapi::QLength lateralError{distance(initial, target) - distance(initial, state) - offset};
+        okapi::QAngle angularError{okapi::OdomMath::constrainAngle180(angle(initial, target) - state.h)};
+        while (!isTimeExpired(startTime, maxTime) &&
+               !lateralSettledChecker->isSettled(lateralError))
         {
-            while (!isTimeExpired(startTime, maxTime))
-            {
-                const Position state{poseEstimator->getPosition()};
-                const Position waypoint{generateWaypoint(state, positions[i])};
-                okapi::QLength lateralError{distance(state, waypoint)};
-                okapi::QAngle angularError{angle(state, waypoint)};
-                if (okapi::abs(angularError) > 90_deg)
-                {
-                    lateralError = -1 * lateralError;
-                    angularError = okapi::OdomMath::constrainAngle180(angularError + 180_deg);
-                }
-                if (okapi::abs(lateralError) < 2_in)
-                    angularError = 0_deg;
-                if (isSettled(lateralError, angularError, i, positions.size() - 1))
-                    break;
-                int lateralOutput = lateralController->getOutput(lateralError.convert(okapi::inch));
-                lateralOutput = std::clamp(lateralOutput, -maxLateral, maxLateral);
-                lateralOutput *= abs(cos(angularError.convert(okapi::radian)));
-                int angularOutput = angularController->getOutput(angularError.convert(okapi::degree));
-                angularOutput = std::clamp(angularOutput, -maxAngular, maxAngular);
-                move(lateralOutput + angularOutput, lateralOutput - angularOutput);
-                pros::delay(10);
-            }
+            state = poseEstimator->getPosition();
+            if (reversed)
+                state.h += 180_deg;
+            lateralError = distance(initial, target) - distance(initial, state) - offset;
+            angularError = okapi::OdomMath::constrainAngle180(angle(initial, target) - state.h);
+            int lateralOutput{(int)lateralController->getOutput(lateralError.convert(okapi::inch))};
+            int angularOutput{(int)angularController->getOutput(angularError.convert(okapi::degree))};
+            if (reversed)
+                lateralOutput *= -1;
+            lateralOutput = std::clamp(lateralOutput, -maxLateral, maxLateral);
+            angularOutput = std::clamp(angularOutput, -maxAngular, maxAngular);
+            move(lateralOutput, angularOutput);
+            pros::delay(stdDelay);
+        }
+        tare();
+    }
+
+    void Drive::pointAt(Position target,
+                        const okapi::QTime &maxTime,
+                        bool reversed,
+                        bool useVision,
+                        int maxAngular)
+    {
+        tare();
+        target = accountForSide(target, autonSelector->getColor());
+        const okapi::QTime startTime{pros::millis() * okapi::millisecond};
+        Position state{poseEstimator->getPosition()};
+        if (reversed)
+            state.h += 180_deg;
+        okapi::QAngle angularError{angle(state, target)};
+        while (!isTimeExpired(startTime, maxTime) &&
+               !angularSettledChecker->isSettled(angularError))
+        {
+            state = poseEstimator->getPosition();
+            if (reversed)
+                state.h += 180_deg;
+            angularError = angle(state, target);
+            const int angularOutput{(int)angularController->getOutput(angularError.convert(okapi::degree))};
+            const int visionOutput{useVision ? (int)visionAim() : 0};
+            const int output{std::clamp(angularOutput + visionOutput, -maxAngular, maxAngular)};
+            move(0, output);
+            pros::delay(stdDelay);
         }
         tare();
     }
@@ -106,33 +136,28 @@ namespace atum8
             aimController->reset();
             return 0.0;
         }
-        const auto redGoal = vision->get_by_sig(0, redSig.id);
-        const auto blueGoal = vision->get_by_sig(0, blueSig.id);
-        const int redGoalArea{redGoal.width * redGoal.height};
-        const int blueGoalArea{blueGoal.width * blueGoal.height};
-        const auto goal = redGoalArea > blueGoalArea ? redGoal : blueGoal;
-        const double error{aimFilter->get((double)goal.x_middle_coord)};
+        const double error{getVisionAimError()};
         return aimController->getOutput(error);
     }
 
-    void Drive::driverMove(int leftInput, int rightInput)
+    void Drive::driverMove(int forward, int turn)
     {
         setBrakeMode(driverSettings->brakeMode);
-        leftInput = (abs(leftInput) < driverSettings->deadZone) ? 0 : leftInput;
-        rightInput = (abs(rightInput) < driverSettings->deadZone) ? 0 : rightInput;
-        leftInput = driverSettings->stickFunction(leftInput);
-        rightInput = driverSettings->stickFunction(rightInput);
-        leftInput *= driverSettings->maxPower;
-        rightInput *= driverSettings->maxPower;
-        move(leftInput, rightInput);
+        forward = (abs(forward) < driverSettings->deadZone) ? 0 : forward;
+        turn = (abs(turn) < driverSettings->deadZone) ? 0 : turn;
+        forward = driverSettings->stickFunction(forward);
+        turn = driverSettings->stickFunction(turn);
+        forward *= driverSettings->maxPower;
+        turn *= driverSettings->maxPower;
+        move(forward, turn);
     }
 
-    void Drive::move(int leftInput, int rightInput)
+    void Drive::move(int forward, int turn)
     {
-        if (!leftInput && !rightInput)
+        if (!forward && !turn)
             return applyBrakes();
-        left->move(leftInput);
-        right->move(rightInput);
+        left->move(forward + turn);
+        right->move(forward - turn);
     }
 
     void Drive::tare()
@@ -172,21 +197,24 @@ namespace atum8
         return (pros::millis() * okapi::millisecond - startTime) > maxTime && maxTime != 0_s;
     }
 
-    bool Drive::isSettled(const okapi::QLength &lateralError,
-                          const okapi::QAngle &angularError,
-                          int currentIndex,
-                          int lastIndex)
+    bool Drive::isSettled(const okapi::QLength &lateralError)
     {
         lateralSettledChecker->isSettled(lateralError);
         return lateralSettledChecker->isSettled();
     }
 
-    Position Drive::generateWaypoint(const Position &state, const Position &endPoint)
+    double Drive::getVisionAimError()
     {
-        const okapi::QLength distanceBtwn{distance(state, endPoint)};
-        const okapi::QLength x{endPoint.x - distanceBtwn * 0.6 * okapi::sin(endPoint.h)};
-        const okapi::QLength y{endPoint.y - distanceBtwn * 0.6 * okapi::cos(endPoint.h)};
-        return {x, y, 0_deg};
+        auto goal = vision->get_by_sig(0, autonSelector->getColor() == Color::Red ? redSig.id : blueSig.id);
+        if (autonSelector->getMatchInfo().routine == Routine::Skills)
+        {
+            const auto redGoal = vision->get_by_sig(0, redSig.id);
+            const auto blueGoal = vision->get_by_sig(0, blueSig.id);
+            const int redGoalArea{redGoal.width * redGoal.height};
+            const int blueGoalArea{blueGoal.width * blueGoal.height};
+            goal = redGoalArea > blueGoalArea ? redGoal : blueGoal;
+        }
+        return aimFilter->get((double)goal.x_middle_coord);
     }
 
     /* -------------------------------------------------------------------------- */

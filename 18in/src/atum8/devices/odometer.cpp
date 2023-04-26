@@ -5,10 +5,13 @@ namespace atum8
     Odometer::Odometer(char portA,
                        char portB,
                        double iMultiplier,
-                       const Dimensions &iDimensions) : encoder{portA, portB},
+                       const Dimensions &iDimensions,
+                       bool iReversed) : encoder{portA, portB},
                                                         multiplier{iMultiplier},
-                                                        dimensions{iDimensions}
+                                                        dimensions{iDimensions},
+                                                        reversed{iReversed}
     {
+        encoder.reset();
     }
 
     okapi::QLength Odometer::getDistance()
@@ -17,7 +20,7 @@ namespace atum8
         const int ticksDiff{ticks - prevTicks};
         prevTicks = ticks;
         const okapi::QLength distance{ticksDiff * multiplier * dimensions.wheelCircum};
-        return distance;
+        return reversed ? -1 * distance : distance;
     }
 
     okapi::QLength Odometer::getDistanceToCenter() const

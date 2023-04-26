@@ -16,6 +16,14 @@ namespace atum8
         return sum / imus.size();
     }
 
+    okapi::QAngle Imus::get_delta()
+    {
+        const okapi::QAngle heading{get_rotation() * okapi::degree};
+        const okapi::QAngle delta{heading - prevHeading};
+        prevHeading = heading;
+        return delta;
+    }
+
     void Imus::reset()
     {
         for (pros::Imu imu : imus)
