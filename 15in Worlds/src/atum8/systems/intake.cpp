@@ -5,7 +5,6 @@
 
 namespace atum8 {
 void Intake::taskFn() {
-  intakeToggler.set_value(is3StackMode);
   intakeMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
   while (true) {
     controller();
@@ -38,10 +37,6 @@ void Intake::diskControlls() {
   } else {
     buttonDuration = 0;
   }
-  if (Chris.get_digital_new_press(DIGITAL_B)) {
-    is3StackMode = !is3StackMode;
-    intakeToggler.set_value(is3StackMode);
-  }
 }
 
 void Intake::rollerControlls() {
@@ -53,10 +48,29 @@ void Intake::rollerControlls() {
     intakeMotors.move_voltage(0);
 }
 
-void Intake::setRollerToRed() {
+void Intake::in() {
+  intakeMotors.move_voltage(12000);
+}
+
+void Intake::out() {
+  intakeMotors.move_voltage(-12000);
+}
+
+void Intake::stop(){
+  intakeMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
+  intakeMotors.move_voltage(0);
+}
+
+void Intake::setRollerToRed(const double secThreshold) {
+  msCounter = 0;
   while (opticalSensor.get_hue() < blueRollerHue - rollerColorThreshold) {
     driveMotors.move_voltage(-2000);
     intakeMotors.move_voltage(-12000);
+    
+    msCounter += 10;
+    if(msCounter/1000 > secThreshold)
+      break;
+    pros::delay(10);
   }
   intakeMotors.move_voltage(3000);
   pros::delay(500);
@@ -64,10 +78,16 @@ void Intake::setRollerToRed() {
   intakeMotors.move_voltage(0);
 }
 
-void Intake::setRollerToBlue() {
+void Intake::setRollerToBlue(const double secThreshold) {
+  msCounter = 0;
   while (opticalSensor.get_hue() > redRollerHue + rollerColorThreshold) {
     driveMotors.move_voltage(-2000);
     intakeMotors.move_voltage(-12000);
+    
+    msCounter += 10;
+    if(msCounter/1000 > secThreshold)
+      break;
+    pros::delay(10);
   }
   intakeMotors.move_voltage(3000);
   pros::delay(500);

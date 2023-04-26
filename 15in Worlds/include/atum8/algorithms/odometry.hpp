@@ -3,7 +3,7 @@
  * @author Thomas Tran Dang (thomasdang92@gmail.com)
  * @brief This file provides the class for absolute position tracking. (Odometry very cool)
  * @version 0.3
- * @date 2023-03-27
+ * @date 2023-04-21
  * 
  * @copyright Copyright (c) 2023
  * 
@@ -28,9 +28,9 @@ namespace atum8{
 
         private:
         double multiplier {1.0 / 2048 / 4};
-        const float sR{ 6.69291 };
-        const float sL { 6.69291 };
-        const float sS { 0.905512 };
+        const float sR{ 3.0078125 };
+        const float sL { 3.0078125 };
+        const float sS { 0.40625 };
 
         double rightPosition;
         double leftPosition;

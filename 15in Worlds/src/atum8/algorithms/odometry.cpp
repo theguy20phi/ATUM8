@@ -12,6 +12,10 @@ namespace atum8 {
 
     void Odometry::trackPosition() {
         // Calculuate Delta Right, Delta Left, and Delta Back
+        //std::cout << "Right: " << rightEncoder.get_value() << std::endl;
+        //std::cout << "Left: " << leftEncoder.get_value() << std::endl;
+        //std::cout << "Back: " << backEncoder.get_value() << std::endl;
+
         rightPosition = (rightEncoder.get_value() * encoderWheelCircumference * multiplier);
         leftPosition = (leftEncoder.get_value() * encoderWheelCircumference * multiplier);
         backPosition = (backEncoder.get_value() * encoderWheelCircumference * multiplier);
@@ -41,10 +45,13 @@ namespace atum8 {
         headingAverage = globalHeadingInRadians + deltaHeading / 2;
 
         // Update Global X Coordinate, Y Coordinate, Heading in Radians, and Heading in Degrees
+        //positionMutex.take();
         globalX += deltaX * cos(headingAverage) + deltaY * sin(headingAverage);
         globalY += deltaY * cos(headingAverage) - deltaX * sin(headingAverage);
+
         globalHeadingInRadians += deltaHeading;
         globalHeadingInDegrees = globalHeadingInRadians * 180.0 / M_PI;
+        //positionMutex.give();
     }
 
     void Odometry::setStartingPosition(double x, double y, double headingInDegrees) {

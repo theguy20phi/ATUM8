@@ -1,2 +1,3 @@
-Update ports for both ADI and normal ports
 add time out for rollers and aim bot during autonomous control 
+tune pid controllers
+tune optical sensor

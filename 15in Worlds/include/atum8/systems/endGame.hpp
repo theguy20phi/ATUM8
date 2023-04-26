@@ -22,6 +22,7 @@ public:
   void shoot();
   void retract();
 private:
-  bool isRetracted { true };
+  bool isRightRetracted { true };
+  bool isLeftRetracted { true };
 };
 } // namespace atum8
