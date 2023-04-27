@@ -13,9 +13,11 @@
 #include "main.h"
 #include "atum8/globals.hpp"
 #include "atum8/misc/task.hpp"
+#include "atum8/misc/utility.hpp"
+#include "atum8/sensors/imus.hpp"
 
 namespace atum8{
-    class Odometry : public Task{
+    class Odometry : Imus, public Task{
         public:
 
         void taskFn();
@@ -25,13 +27,15 @@ namespace atum8{
         double getWorldY();
         double getWorldHeadingInRadians();
         double getWorldHeadingInDegrees();
+        void setImuTrust(double trustFactor);
 
         private:
-        double multiplier {1.0 / 2048 / 4};
-        const float sR{ 3.0078125 };
-        const float sL { 3.0078125 };
+        double imuTrust { .9 };
+        double multiplier {1.0 / 1024 / 4};
+        const float sR{ 3.023 };
+        const float sL { 3.023 };
         const float sS { 0.40625 };
-
+//6.046
         double rightPosition;
         double leftPosition;
         double backPosition;
@@ -45,7 +49,6 @@ namespace atum8{
         double deltaBackPosition;
         double prevBackPosition { 0 };
 
-        double deltaHeading;
         double currentHeading;
         double prevHeading;
 

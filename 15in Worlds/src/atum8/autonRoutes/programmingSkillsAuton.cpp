@@ -9,5 +9,6 @@ void programmingSkillsAuton() {
   atum8::Intake intake;
   atum8::Odometry odometry;
   atum8::Vision vision;
+
 }
 } // namespace atum8

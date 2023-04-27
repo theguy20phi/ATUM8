@@ -30,7 +30,7 @@ namespace atum8 {
         prevBackPosition = backPosition;
 
         // Calculate Delta Heading and update previous heading variable
-        deltaHeading = (deltaLeftPosition - deltaRightPosition) / (sL + sR);
+        const double deltaHeading = imuTrust * getDeltaHeadingImu() + (1.0 - imuTrust) * (deltaLeftPosition - deltaRightPosition) / (sL + sR);
 
         // Calculate Delta X and Delta Y
         if(deltaHeading == 0) {
@@ -57,6 +57,11 @@ namespace atum8 {
     void Odometry::setStartingPosition(double x, double y, double headingInDegrees) {
         globalX = x;
         globalY = y;
+        globalHeadingInRadians = utility::convertDegreeToRadian(headingInDegrees);
         globalHeadingInDegrees = headingInDegrees;
+    }
+
+    void Odometry::setImuTrust(double trustFactor) {
+        imuTrust = trustFactor;
     }
 }

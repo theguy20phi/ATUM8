@@ -71,5 +71,6 @@ private:
   const short int yellowID{3};
   const short int visionFOVWidth{316};
   const short int visionFOVHeight{212};
+  double multiplier {1.0 / 1024 / 4};
 };
 } // namespace atum8
