@@ -1,39 +1,22 @@
-/**
- * @file roller.hpp
- * @author Braden Pierce (bradenwepierce@gmail.com)
- * @brief Provides the implementation for the roller.
- * @version 0.1
- * @date 2023-03-02
- *
- * @copyright Copyright (c) 2023
- *
- */
-
 #pragma once
 
 #include "atum8/misc/constants.hpp"
 #include "atum8/gui/autonSelector.hpp"
+#include "atum8/misc/task.hpp"
 #include "pros/misc.hpp"
 
 namespace atum8
 {
-    /**
-     * @brief Provides the implementation for the roller.
-     *
-     */
-    class Roller
+    class Roller : public Task
     {
     public:
-        /**
-         * @brief Constructs a new Roller object.
-         *
-         * @param iMotor
-         * @param iOpticalA
-         * @param iOpticalB
-         * @param iAutonSelector
-         * @param iRedHue
-         * @param iBlueHue
-         */
+        enum class RollerState
+        {
+            TurningToColor,
+            Turning,
+            Idle
+        };
+
         Roller(UPMotor iMotor,
                UPOptical iOpticalA,
                UPOptical iOpticalB,
@@ -41,43 +24,20 @@ namespace atum8
                int iRedHue,
                int iBlueHue);
 
-        /**
-         * @brief Provides the controls for the driver controller portion.
-         *
-         * @param master
-         */
+
+        void setState(const RollerState &iRollerState);
+
+        RollerState getState() const;
+
         void control(pros::Controller master);
 
-        /**
-         * @brief Turns the roller to the color given from the auton selector.
-         * Blocks if blocking is set to true.
-         *
-         * @param blocking
-         */
-        void turnToColor(bool blocking);
 
-        /**
-         * @brief Runs the roller at a given speed.
-         *
-         * @param speed
-         */
-        void runRoller(int velocity = 200);
-
-        /**
-         * @brief Stops the roller.
-         *
-         */
-        void stopRoller();
-
-        /**
-         * @brief Runs the roller to a certain position, at a certain speed.
-         *
-         * @param position
-         * @param speed
-         */
-        void runForAt(double position, int speed = 100);
 
     private:
+        TaskFn rollerControlTask();
+        void turnToColor();
+        void runRoller(int velocity = 100);
+        void stopRoller();
         bool isCorrectColor();
         UPMotor motor;
         UPOptical opticalA;
@@ -85,6 +45,7 @@ namespace atum8
         SPAutonSelector autonSelector;
         int redHue;
         int blueHue;
+        RollerState rollerState;
     };
 
     using UPRoller = std::unique_ptr<Roller>;

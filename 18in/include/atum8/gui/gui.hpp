@@ -10,19 +10,8 @@ namespace atum8
     class Gui
     {
     public:
-        /**
-         * @brief Handles the control of the screen.
-         *
-         * @param i The left button should have the callback [] () { gui->control(-1); }
-         * The middle button should have the callback [] () { gui->control(0); }
-         * The right button should have the callback [] () { gui->control(1); }
-         */
         virtual void control(int i) = 0;
 
-        /**
-         * @brief Updates the LCD display to reflect the current match information.
-         *
-         */
         virtual void view() const = 0;
 
     protected:

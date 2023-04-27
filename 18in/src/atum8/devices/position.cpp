@@ -18,4 +18,11 @@ namespace atum8
         return okapi::OdomMath::constrainAngle180(dh);
     }
 
+    Position accountForSide(const Position &position, const Color &color, bool reverseH)
+    {
+
+        if (color == Color::Blue)
+            return {-1 * position.x, -1 * position.y, (reverseH ? -1 : 1) * position.h};
+        return position;
+    }
 }

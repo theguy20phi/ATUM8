@@ -1,7 +1,9 @@
 #pragma once
 
+#include "okapi/api/odometry/OdomMath.hpp"
 #include "atum8/misc/constants.hpp"
 #include "atum8/misc/task.hpp"
+#include "atum8/devices/imus.hpp"
 #include "odometer.hpp"
 #include "poseEstimator.hpp"
 
@@ -15,14 +17,16 @@ namespace atum8
         Odometry(UPOdometer iLeft,
                  UPOdometer iRight,
                  UPOdometer iSide,
-                 const Position &startingPosition = {0_in, 0_in, 0_deg});
+                 UPImus iImus = nullptr,
+                 double iImuTrust = 0.99);
 
     private:
         TaskFn track();
-
         UPOdometer left;
         UPOdometer right;
         UPOdometer side;
+        UPImus imus;
+        double imuTrust;
     };
 
     using UPOdometry = std::unique_ptr<Odometry>;
@@ -48,7 +52,7 @@ namespace atum8
 
         SPOdometryBuilder withWidth(const okapi::QLength &iWidth);
 
-        SPOdometryBuilder withStartingPosition(const Position &iStartingPosition);
+        SPOdometryBuilder withImus(const std::vector<int> &iImuPorts, double iImuTrust = 0.99);
 
     private:
         char leftA, leftB;
@@ -61,6 +65,7 @@ namespace atum8
         double encoderMultiplier;
         okapi::QLength circum;
         okapi::QLength width;
-        Position startingPosition{0_in, 0_in, 0_deg};
+        std::vector<int> imuPorts;
+        double imuTrust;
     };
 }

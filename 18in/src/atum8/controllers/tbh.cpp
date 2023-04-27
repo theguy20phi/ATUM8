@@ -3,22 +3,26 @@
 namespace atum8
 {
 
-    Tbh::Tbh(double iKTbh) : kTbh{iKTbh} {}
+    Tbh::Tbh(double iKTbh,
+             double iTbhInit) : kTbh{iKTbh},
+                                tbhInit{iTbhInit} {}
 
     double Tbh::getOutput(double state, double reference)
     {
+        feedForward = tbhInit * reference;
         return getOutput(reference - state);
     }
 
     double Tbh::getOutput(double error)
     {
-        if(!sampleTimePassed())
+        if (!sampleTimePassed())
             return output;
         output += kTbh * error;
-        if (std::signbit(error) == std::signbit(prevError))
-            return output;
-        output = 0.5 * (output + feedForward);
-        feedForward = output;
+        if (std::signbit(error) != std::signbit(prevError))
+        {
+            output = 0.5 * (output + feedForward);
+            feedForward = output;
+        }
         prevError = error;
         return output;
     }
@@ -33,7 +37,8 @@ namespace atum8
         return kTbh;
     }
 
-    void Tbh::reset() {
+    void Tbh::reset()
+    {
         Controller::reset();
         feedForward = 0;
     }

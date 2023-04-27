@@ -6,8 +6,8 @@ namespace atum8
                  double kI,
                  double kD,
                  double FF,
-                 double pMin,
-                 double pMax) : PidFF::PidFF{PidFF::Parameters{kP, kI, kD, FF, pMin, pMax}} {}
+                 double min,
+                 double max) : PidFF::PidFF{PidFF::Parameters{kP, kI, kD, FF, min, max}} {}
 
     PidFF::PidFF(const PidFF::Parameters &iParams) : params{iParams} {}
 
@@ -18,8 +18,9 @@ namespace atum8
         // Prevents derivative kick by using state diff rather than error diff
         const double D{params.kD * (state - prevState)};
         prevState = state;
-        const double PIFF{getPIFF(reference - state, reference)};
-        output = PIFF + D;
+        const double PI{getPI(reference - state)};
+        const double FF{params.FF * reference};
+        output = std::clamp(PI + D, params.min, params.max) + FF;
         return output;
     }
 
@@ -28,16 +29,16 @@ namespace atum8
         if (!sampleTimePassed())
             return output;
         const double D{params.kD * (error - prevError)};
-        const double PIFF{getPIFF(error)};
-        output = PIFF + D;
+        const double PI{getPI(error)};
+        output = std::clamp(PI + D, params.min, params.max) + params.FF;
         return output;
     }
 
-    double PidFF::getPIFF(double error, double reference)
+    double PidFF::getPI(double error)
     {
-        const double P{std::clamp(params.kP * error, params.pMin, params.pMax)};
+        const double P{params.kP * error};
         updateI(error);
-        return P + I + params.FF * reference;
+        return P + I;
     }
 
     void PidFF::updateI(double error)

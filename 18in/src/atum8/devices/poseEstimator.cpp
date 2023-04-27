@@ -9,16 +9,21 @@ namespace atum8
 
     void PoseEstimator::setPosition(const Position &iPosition)
     {
+        positionMutex.take();
         position = iPosition;
+        positionMutex.give();
     }
 
-    Position PoseEstimator::getPosition() const
+    Position PoseEstimator::getPosition()
     {
-        return position;
+        positionMutex.take();
+        const Position currentPosition{position};
+        positionMutex.give();
+        return currentPosition;
     }
 
     void PoseEstimator::tare()
     {
-        position = {0_in, 0_in, 0_deg};
+        setPosition({0_in, 0_in, 0_deg});
     }
 }

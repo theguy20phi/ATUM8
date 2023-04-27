@@ -33,12 +33,17 @@ atum8::SPDrive drive;
 atum8::SPShooter shooter;
 atum8::SPRoller roller;
 atum8::UPADIDigitalOut endGame;
+atum8::SPOdometry odometry;
 
 void initializeLCD();
 void skills();
 void match();
 void special();
-void turnRoller(int rotation);
+void turnRoller();
+void getThreeStack();
+
+static constexpr atum8::Position goal{2_tile + 4.5_in, 2_tile + 4.5_in};
+static constexpr okapi::QLength diskOffset{8.75_in};
 
 /**
  * Prototypes for the competition control tasks are redefined here to ensure

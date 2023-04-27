@@ -36,19 +36,18 @@ namespace atum8
     {
         return [=]()
         {
-            double currentReferenceSpeed{referenceSpeed.convert(okapi::rpm)};
             while (true)
             {
-                if (slewRate)
-                    currentReferenceSpeed = slewRate->slew(referenceSpeed.convert(okapi::rpm));
-                else
-                    currentReferenceSpeed = referenceSpeed.convert(okapi::rpm);
+                double currentReferenceSpeed{referenceSpeed.convert(okapi::rpm)};
                 const okapi::QAngularSpeed speed{getSpeed()};
                 velocitySettledChecker->isSettled(speed, referenceSpeed);
                 double output{velocityController->getOutput(speed.convert(okapi::rpm), currentReferenceSpeed)};
+                if (slewRate)
+                    output = slewRate->slew(output);
                 if (referenceSpeed == 0_rpm || output <= 0)
                     output = 0;
                 flywheel->move_velocity(output);
+                numOfDisks = potentiometer->getMappedPosition();
                 pros::delay(stdDelay);
             }
         };
@@ -177,12 +176,12 @@ namespace atum8
 
     int Shooter::getDisks()
     {
-        return potentiometer->getMappedPosition();
+        return numOfDisks;
     }
 
     bool Shooter::isShooting() const
     {
-        return numOfShots;
+        return shooterState != ShooterState::Idle;
     }
 
     void Shooter::setReferenceSpeed(const okapi::QAngularSpeed speed)
@@ -247,23 +246,39 @@ namespace atum8
 
     void Shooter::flywheelControls(pros::Controller master)
     {
-        static bool multi{true};
-        constexpr okapi::QAngularSpeed speed{2675_rpm};
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
-            multi = !multi;
-        if (multi)
         {
-            multiShotPrepare(speed);
-            master.print(2, 0, "MULTISHOT                ");
+            switch (controlState)
+            {
+            case ControlState::Multi:
+                controlState = ControlState::Single;
+                break;
+            case ControlState::Single:
+                controlState = ControlState::Loader;
+                break;
+            default:
+                controlState = ControlState::Multi;
+                break;
+            }
         }
-        else
+        switch (controlState)
         {
-            singleShotPrepare(speed);
+        case ControlState::Multi:
+            multiShotPrepare(2850_rpm);
+            master.print(2, 0, "MULTISHOT                ");
+            break;
+        case ControlState::Single:
+            singleShotPrepare(2850_rpm);
             master.print(2, 0, "SINGLE SHOT              ");
+            break;
+        default:
+            singleShotPrepare(2565_rpm);
+            master.print(2, 0, "LOADER                   ");
+            break;
         }
         if (master.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R1))
         {
-            if (multi)
+            if (controlState == ControlState::Multi)
                 multiShot(getDisks(), 2_s);
             else
                 singleShot(1, 2_s);
@@ -284,17 +299,20 @@ namespace atum8
     {
         for (int i{0}; i < numOfShots; i++)
         {
-            waitFor([=]()
-                    { return readyToFire(); },
-                    shotTimeout);
+            if (pros::competition::is_autonomous() || controlState == ControlState::Loader)
+                waitFor([=]()
+                        { return readyToFire(); },
+                        shotTimeout);
             index();
         }
+        shooterState = ShooterState::Idle;
     }
 
     void Shooter::perfMultiShot()
     {
-        waitFor([=]()
-                { return readyToFire(); });
+        if (pros::competition::is_autonomous())
+            waitFor([=]()
+                    { return readyToFire(); });
         const okapi::QAngularSpeed prevReferenceSpeed{referenceSpeed};
         for (int i{0}; i < numOfShots; i++)
         {
@@ -303,6 +321,7 @@ namespace atum8
             pros::delay(stdDelay);
         }
         referenceSpeed = prevReferenceSpeed;
+        shooterState = ShooterState::Idle;
     }
 
     void Shooter::index()
