@@ -90,10 +90,10 @@ void initialize()
 				  .withIntakeMotor(1)
 				  .withIntakeAdjuster(4, 'B')
 				  .withLoader(4, 'C')
-				  .withPotentiometer('A', {3300, 3190, 2975, 2815, 2420})
+				  .withPotentiometer('A', {3230, 3195, 2960, 2745, 2440}, 5)
 				  .withGearing(15.0)
 				  .withController(flywheelVelController)
-				  .withSettledChecker(15_rpm, 45_rpmps)
+				  .withSettledChecker(5_rpm, 5_rpmps)
 				  .withMultiShotAdjustment(500_rpm)
 				  .withFilter(flywheelVelFilter)
 				  .build();
@@ -125,6 +125,10 @@ void disabled()
 
 void autonomous()
 {
+	shooter->setUseVelocity(false);
+	shooter->setVelocityController(std::make_shared<atum8::PidFF>(16, 0, 0, 3.809, 0));
+	shooter->setWaitUntilReady(true);
+	shooter->setSlewRate(std::make_shared<atum8::SlewRate>(100));
 	switch (autonSelector->getMatchInfo().routine)
 	{
 	case atum8::Routine::Skills:
@@ -144,6 +148,11 @@ void opcontrol()
 	gui = debugger;
 	gui->view();
 	pros::Controller master{pros::controller_id_e_t::E_CONTROLLER_MASTER};
+
+	shooter->setUseVelocity(true);
+	shooter->setVelocityController(std::make_shared<atum8::PidFF>(0.0035, 0, 0, .0666666));
+	shooter->setSlewRate(nullptr);
+	shooter->setWaitUntilReady(false);
 	while (true)
 	{
 		gui->view();
@@ -210,7 +219,7 @@ void skills()
 	getThreeStack();
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
 	drive->moveTo({2.5_tile, 0.75_tile});
-	drive->pointAt(goal, 2_s, false, false);
+	drive->pointAt(goal, 3_s, false, false);
 	shooter->multiShot(shooter->getDisks());
 	atum8::waitFor(doneShooting);
 	drive->moveTo({2.5_tile, 0_tile}, 0_s, true);
@@ -233,36 +242,53 @@ void match()
 {
 	const atum8::Position start{-3_tile + 9_in, 0.5_tile, 90_deg};
 	odometry->setPosition(atum8::accountForSide(start, autonSelector->getColor(), true));
-	shooter->singleShotPrepare(2725_rpm);
+	shooter->singleShotPrepare(2645_rpm);
 	drive->moveTo({-2.5_tile, 0.5_tile}, 0.5_s);
 	shooter->raiseIntake();
-	drive->moveTo({-1.5_tile, 1.5_tile}, 6_s, false, 80, 127, diskOffset);
+	drive->moveTo({-1.5_tile, 1.5_tile}, 5_s, false, 85, 127, diskOffset);
 	getThreeStack();
 	drive->moveTo({-2_tile, 1_tile}, 4_s, true);
-	drive->pointAt(goal, 1.5_s);
-	shooter->singleShot(shooter->getDisks());
+	drive->pointAt(goal, 3.5_s);
+	shooter->singleShot(shooter->getDisks(), 1.5_s);
 	atum8::waitFor(doneShooting);
-	shooter->singleShotPrepare(2730_rpm);
+	shooter->singleShotPrepare(2660_rpm);
 	shooter->raiseIntake();
-	drive->moveTo({-1.5_tile, 0.5_tile}, 4_s, false, 80, 127, diskOffset);
+	drive->moveTo({-1.5_tile, 0.5_tile}, 4_s, false, 85, 127, diskOffset);
 	getThreeStack();
-	drive->moveTo({-1.5_tile, 0.5_tile}, 1.5_s);
-	drive->pointAt(goal);
-	shooter->singleShot(shooter->getDisks());
+	drive->moveTo({-1.5_tile, 0.5_tile}, 3_s);
+	drive->pointAt(goal, 3.5_s);
+	shooter->singleShot(shooter->getDisks(), 1.5_s);
 	atum8::waitFor(doneShooting);
+	shooter->singleShotPrepare(2777.5_rpm);
 	shooter->runIntake();
-	drive->moveTo({-2.4_tile, -0.4_tile}, 6_s, false, 55);
-	drive->moveTo({-2_tile, 0_tile}, 1_s, true);
-	drive->moveTo({-1.5_tile, 0.5_tile}, 4_s);
-	drive->pointAt(goal, 3_s);
-	shooter->singleShot(shooter->getDisks());
+	drive->moveTo({-2.375_tile, -0.375_tile}, 6_s, false, 55);
+	drive->pointAt(goal, 3.5_s);
+	shooter->singleShot(shooter->getDisks(), 1.5_s);
 	atum8::waitFor(doneShooting);
-	shooter->runIntake();
-	drive->moveTo({0.5_tile, -1.5_tile}, 4_s, false, 80);
 }
 
 void special()
 {
+	const atum8::Position start{-3_tile + 9_in, 0.5_tile, 90_deg};
+	odometry->setPosition(atum8::accountForSide(start, autonSelector->getColor(), true));
+	shooter->singleShotPrepare(2660_rpm);
+	shooter->raiseIntake();
+	drive->moveTo({-1.5_tile, 0.5_tile}, 2_s, false, 90, 127, diskOffset);
+	getThreeStack();
+	drive->moveTo({-1.5_tile, 0.5_tile}, 2_s);
+	drive->pointAt(goal, 3_s);
+	shooter->singleShot(shooter->getDisks(), 3_s);
+	atum8::waitFor(doneShooting);
+	shooter->runIntake();
+	drive->moveTo({-2.375_tile, -0.375_tile}, 4_s, false, 60);
+	drive->moveTo({-1.5_tile, 0.5_tile}, 3_s, true);
+	drive->pointAt(goal, 4_s);
+	shooter->singleShot(shooter->getDisks(), 3_s);
+	atum8::waitFor(doneShooting);
+	drive->moveTo({-2.5_tile, 1.5_tile}, 3_s, true);
+	drive->moveTo({-5_tile, 1.5_tile}, 1_s, true, 40);
+	drive->move(-30);
+	roller->setState(atum8::Roller::RollerState::TurningToColor);
 }
 
 void getThreeStack()
@@ -270,8 +296,8 @@ void getThreeStack()
 	for (int i = 0; i < 3; i++)
 	{
 		shooter->raiseIntake();
-		pros::delay(500);
+		pros::delay(475);
 		shooter->runIntake();
-		pros::delay(500);
+		pros::delay(475);
 	}
 }

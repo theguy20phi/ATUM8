@@ -42,7 +42,7 @@ void special();
 void turnRoller();
 void getThreeStack();
 
-static constexpr atum8::Position goal{2_tile + 4.5_in, 2_tile + 4.5_in};
+static constexpr atum8::Position goal{2_tile + 6.5_in, 2_tile + 6.5_in};
 static constexpr okapi::QLength diskOffset{8.75_in};
 
 /**

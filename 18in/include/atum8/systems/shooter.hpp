@@ -23,26 +23,19 @@ namespace atum8
             Multi
         };
 
-        enum class ControlState
-        {
-            Multi,
-            Single,
-            Loader
-        };
-
         Shooter(UPMotor iIndexer,
                 UPMotorGroup iFlywheel,
                 UPMotor iIntake,
                 SPADIDigitalOut iLoader,
                 SPADIDigitalOut iAngleAdjuster,
                 SPADIDigitalOut iIntakeAdjuster,
+                SPPotentiometer iPotentiometer,
+                double iGearing,
                 SPController iVelocityController,
                 SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> iVelocitySettledChecker,
-                SPPotentiometer iPotentiometer,
                 SPFilter iFilter = std::make_shared<Filter>(),
                 const okapi::QAngularSpeed &iMultiShotAdjustment = 50_rpm,
-                SPSlewRate iSlewRate = nullptr,
-                double iGearing = 7.0);
+                SPSlewRate iSlewRate = nullptr);
 
         TaskFn velocityControlTask();
 
@@ -94,9 +87,17 @@ namespace atum8
 
         void reset();
 
+        void setSlewRate(SPSlewRate iSlewRate);
+
+        void setVelocityController(SPController iVelocityController);
+
         SPController getVelocityController() const;
 
         SPSettledChecker<okapi::QAngularSpeed, okapi::QAngularAcceleration> getVelocitySettledChecker() const;
+
+        void setUseVelocity(bool iUseVelocity);
+
+        void setWaitUntilReady(bool iWaitUntilReady);
 
     private:
         void intakeControls(pros::Controller master);
@@ -110,7 +111,6 @@ namespace atum8
         int numOfShots{0};
         int numOfDisks{0};
         ShooterState shooterState{ShooterState::Idle};
-        ControlState controlState{ControlState::Multi};
         okapi::QTime shotTimeout;
         okapi::QTime prevTime;
         UPMotor indexer;
@@ -129,6 +129,8 @@ namespace atum8
         okapi::QAngularSpeed multiShotAdjustment;
         bool intakeRaised{false};
         bool loaderRaised{false};
+        bool useVelocity{true};
+        bool waitUntilReady{false};
     };
 
     using UPShooter = std::unique_ptr<Shooter>;
