@@ -5,15 +5,16 @@
 #include <math.h>
 
 namespace atum8 {
-Pid linearController(800, 1, 8.8, 0.5, .05);
-Pid turnController(200, 0, 3, 1, .05);
-Pid linearMTPController(800, 1, 0, .5, .05);
-Pid turnMTPController(200, 0, 3, 1, .05);
-Pid turnTPController(200, 0, 3, 1, .05);
+Pid linearController(800, 1, 8.9, 0.5, .05);
+Pid turnController(242, .8, 0, 1, .05);
+/////////////////////////////////////////////////////////////////
+Pid linearMTPController(780, .5, 1, .5, .05);
+Pid turnMTPController(200, 0, 0, 1, .05);
+Pid turnTPController(200, 2, 1, 1, .05);
 Pid aimBotControllerz(50, 1, 0, 5, 0.5);
 
 void Drive::taskFn() {
-  setDriveBrakeMode("BRAKE");
+  setDriveBrakeMode("COAST");
   aimBotControllerz.setMaxOutput(6000);
   pros::vision_signature_s_t RED_SIG = pros::Vision::signature_from_utility(
       redID, 9127, 10643, 9884, -607, 1, -302, 6.9, 0);
@@ -61,12 +62,21 @@ void Drive::movePID(const double inches, const double rpm,
                     const double secThreshold) {
   reset();
   linearController.setMaxOutput(utility::rpmToPower(rpm));
+  double driftCorrection;
   while (true) {
     output = linearController.getOutput(
-        (2 * M_PI * encoderWheelRadius * getEncoderAverages()) / 360, inches);
+        (encoderWheelCircumference * ((rightEncoder.get_value() + leftEncoder.get_value()) * 0.5) * multiplier), inches);
 
-    setRightPower(SlewRate::getOutput(getRightPower(), output, acceleration));
-    setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration));
+    std::cout << encoderWheelCircumference * ((rightEncoder.get_value() + leftEncoder.get_value()) * 0.5) * multiplier << std::endl;
+
+    if(dift == true) 
+      driftCorrection = leftEncoder.get_value() - rightEncoder.get_value();
+    
+    else 
+      driftCorrection = 0;
+    
+    setRightPower(SlewRate::getOutput(getRightPower(), output, acceleration) + driftCorrection);
+    setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration) - driftCorrection);
 
     if (linearController.isSettled())
       break;
@@ -83,8 +93,10 @@ void Drive::turnPID(const double angle, const double rpm,
                     const double acceleration, const double secThreshold) {
   reset();
   turnController.setMaxOutput(utility::rpmToPower(rpm));
+  double driftCorrection;
   while (true) {
     output = turnController.getOutput(getImuSensorAverages(), angle);
+    std::cout << getImuSensorAverages() << std::endl;
 
     setRightPower(SlewRate::getOutput(getRightPower(), -output, acceleration));
     setLeftPower(SlewRate::getOutput(getLeftPower(), output, acceleration));
@@ -194,7 +206,6 @@ void Drive::turnToAngle(const double angle, const double rpm, const double accel
   while (true) {
     output = turnController.getOutput(
         utility::constrain180(angle - globalHeadingInDegrees));
-
     // Break Conditions
     if (turnController.isSettled())
       break;
@@ -209,6 +220,8 @@ void Drive::turnToAngle(const double angle, const double rpm, const double accel
       catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
       catapultMotors.move_voltage(0);
     }
+
+    utility::clamp(output, -turnMaxPower, turnMaxPower);
 
     setRightPower(-output);
     setLeftPower(output);
@@ -314,6 +327,8 @@ void Drive::reset() {
   linearOutput = 0;
   turnOutput = 0;
   headingScaleFactor = 0;
+  rightEncoder.reset();
+  leftEncoder.reset();
 
   setRightPower(0);
   setLeftPower(0);
@@ -323,6 +338,6 @@ void Drive::reset() {
   turnMTPController.reset();
   resetImuSensors();
   resetEncoders();
-  setDriveBrakeMode("COAST");
+  setDriveBrakeMode("BRAKE");
 }
 } // namespace atum8

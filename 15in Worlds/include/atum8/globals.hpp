@@ -57,6 +57,7 @@ extern pros::ADIAnalogOut intakeToggler;
 const float encoderWheelRadius{1.625}; // inches
 const double encoderWheelCircumference{203.09/25.4};//{200/25.4};
 
+
 const double driveGearRatio {60.0 / 36.0};
 extern int program;
 extern double globalX;

@@ -10,13 +10,13 @@ void EndGame::taskFn() {
   }
 }
 void EndGame::controller() { 
-  if(Chris.get_digital_new_press(DIGITAL_UP)) {
+  if(Chris.get_digital_new_press(DIGITAL_LEFT)) {
     isRightRetracted = !isRightRetracted;
     endGameRight.set_value(!isRightRetracted);
     std::cout << "rightEndGame: " << isRightRetracted <<  std::endl;
   }
 
-  if(Chris.get_digital_new_press(DIGITAL_LEFT)) {
+  if(Chris.get_digital_new_press(DIGITAL_RIGHT)) {
     isLeftRetracted = !isLeftRetracted;
     endGameLeft.set_value(!isLeftRetracted);
     std::cout << "leftEndGame: " << isLeftRetracted << std::endl;

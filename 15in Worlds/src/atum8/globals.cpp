@@ -33,10 +33,10 @@ pros::Motor_Group catapultMotors({rightCatapultMotor, leftCatapultMotor});
 pros::Motor_Group intakeMotors({rightIntakeMotor, leftIntakeMotor});
 
 // Setup Sensors
-pros::GPS gpsSensor(19);
-pros::Imu imuSensorAlpha(20);
-pros::Imu imuSensorBeta(15);
-pros::Imu imuSensorCharlie(11);
+pros::GPS gpsSensor(10);
+pros::Imu imuSensorAlpha(3);
+pros::Imu imuSensorBeta(4);
+pros::Imu imuSensorCharlie(5);
 pros::Optical opticalSensor(8);
 pros::Vision visionSensorGoal(20);
 pros::Vision visionSensorDisk(9);

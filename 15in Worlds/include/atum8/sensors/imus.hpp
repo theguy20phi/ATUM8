@@ -11,6 +11,8 @@
  
 #pragma once
 #include "main.h"
+#include "okapi/api/units/QAngle.hpp"
+#include "okapi/api/odometry/odomMath.hpp"
 #include "atum8/globals.hpp"
 
 namespace atum8{
@@ -19,5 +21,8 @@ namespace atum8{
         void resetImuSensors();
         double getImuSensorAverages();
         void calibrateImuSensors();
+        double getDeltaHeadingImu();
+        private:
+        double prevHeading { 0 };
     };
 }

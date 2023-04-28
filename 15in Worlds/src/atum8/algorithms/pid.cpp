@@ -49,6 +49,9 @@ double Pid::getOutput(double error_) {
   derivative = error - prevError;
   prevError = error;
 
+  if(!(output > maxOutput) and !(output < -maxOutput))
+    integral = newIntegral;
+
   // Calculuate Ouput
   output = error * kP + integral * kI + derivative * kD;
 
