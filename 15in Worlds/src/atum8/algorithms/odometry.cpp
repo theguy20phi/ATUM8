@@ -30,8 +30,8 @@ namespace atum8 {
         prevBackPosition = backPosition;
 
         // Calculate Delta Heading and update previous heading variable
-        const double deltaHeading = imuTrust * getDeltaHeadingImu() + (1.0 - imuTrust) * (deltaLeftPosition - deltaRightPosition) / (sL + sR);
-
+        //const double deltaHeading = imuTrust * getDeltaHeadingImu() + (1.0 - imuTrust) * (deltaLeftPosition - deltaRightPosition) / (sL + sR);
+        double deltaHeading = (deltaLeftPosition - deltaRightPosition) / (sL + sR);
         // Calculate Delta X and Delta Y
         if(deltaHeading == 0) {
             deltaX = deltaBackPosition;

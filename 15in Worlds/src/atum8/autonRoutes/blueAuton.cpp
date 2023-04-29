@@ -9,35 +9,31 @@ void blueAuton() {
   atum8::Intake intake;
   atum8::Odometry odometry;
   atum8::Vision vision;
-  
-  drive.movePID(-20, 200, 600, false, 3);
-  pros::delay(250);
-  drive.turnPID(90, 200, 600, 5);
 
-  drive.movePID(-3, 50, 600, false, 1);
+  odometry.setStartingPosition(0, 0, -90);
 
+  // Move to first roller
+  drive.moveToPoint(20, 0, 100, 100, 3);
+  drive.turnToAngle(0, 200, 5);
+  drive.moveToPoint(20, -4, 100, 0, 2);
+
+  // Toggle first roller
   intake.setRollerToBlue(2);
 
-  drive.movePID(3, 200, 600, false, 1);
+  // Move to mid field
+  drive.moveToPoint(20, 0, 100, 0, 2);
+  drive.turnToAngle(135, 200, 5);
 
-  drive.turnPID(-93.5, 200, 600, 3);
+  // Wait on Braden
+  pros::delay(18000);
 
-  drive.movePID(106, 100, 600, false, 8);
+  // Move to second roller
+  intake.in();
+  drive.moveToPoint(-75.75, 86, 100, 100, 5);
+  drive.turnToAngle(80, 200, 5);
+  drive.moveToPoint(-80, 120, 100, 0, 1);
 
-  drive.movePID(-3, 200, 600, false, 3);
-
-  drive.turnPID(90, 200, 600, 3);
-
-  drive.movePID(-10, 80, 600, false, 1);
-
-  pros::delay(15000);
-
-  drive.movePID(100, 100, 600, false, 10);
-
-  drive.turnPID(84, 200, 600, 5);
-
-  drive.movePID(-10, 80, 600, false, 3);
-
-  intake.setRollerToBlue(5);
+  // Toggle Second roller
+  intake.setRollerToBlue(10);
 }
 } // namespace atum8

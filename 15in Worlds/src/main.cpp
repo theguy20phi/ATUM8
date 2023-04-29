@@ -1,10 +1,10 @@
 #include "main.h"
 #include "atum8/algorithms/odometry.hpp"
-#include "atum8/gui/autonSelector.hpp"
 #include "atum8/autonRoutes/blueAuton.hpp"
 #include "atum8/autonRoutes/programmingSkillsAuton.hpp"
 #include "atum8/autonRoutes/redAuton.hpp"
 #include "atum8/autonRoutes/testingAuton.hpp"
+#include "atum8/gui/autonSelector.hpp"
 #include "atum8/gui/debugger.hpp"
 #include "atum8/sensors/imus.hpp"
 #include "atum8/sensors/vision.hpp"
@@ -13,6 +13,7 @@
 #include "atum8\systems\drive.hpp"
 #include "atum8\systems\endGame.hpp"
 #include "atum8\systems\intake.hpp"
+
 
 atum8::Drive drive;
 atum8::Catapult catapult;
@@ -36,11 +37,11 @@ void initialize() {
   // Configure Vision Sensor
   atum8::visionSensorGoal.set_exposure(75);
 
-  pros::lcd::set_text(1, "IMUs ARE CALIBRATING DON'T TOUCH!!!");
-  atum8::imuSensorAlpha.reset();
-  atum8::imuSensorBeta.reset(true);
- // atum8::imuSensorCharlie.reset(true);
-
+  //pros::lcd::set_text(1, "IMUs ARE CALIBRATING DON'T TOUCH!!!");
+  //atum8::imuSensorAlpha.reset();
+  //atum8::imuSensorBeta.reset(true);
+  // atum8::imuSensorCharlie.reset(true);
+  odometry.start();
   // Display Autonomous Selector
   pros::lcd::clear_line(1);
   atum8::AutonSelector autonSelector;
@@ -54,14 +55,14 @@ void disabled() {}
 
 void competition_initialize() {}
 
-void autonomous() { 
-  if(atum8::program == 1)
+void autonomous() {
+  if (atum8::program == 1)
     atum8::redAuton();
-  else if(atum8::program == 2)
+  else if (atum8::program == 2)
     atum8::blueAuton();
-  else if(atum8::program == 3)
+  else if (atum8::program == 3)
     atum8::programmingSkillsAuton();
-  else if(atum8::program == 4)
+  else if (atum8::program == 4)
     atum8::testingAuton();
 }
 

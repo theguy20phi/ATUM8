@@ -30,13 +30,11 @@ public:
   void turnPID(const double angle, const double rpm, const double acceleration,
                const double secThreshold);
   void moveToPoint(const double desiredX, const double desiredY,
-                   const double linearRpm, const double turnRpm,
-                   const double acceleration, const double secThreshold);
+                   const double linearRpm, const double turnRpm, const double secThreshold);
   void turnToPoint(const double desiredX, const double desiredY,
                    const double rpm, const double acceleration,
                    const double secThreshold);
-  void turnToAngle(const double angle, const double rpm,
-                   const double acceleration, const double secThreshold);
+  void turnToAngle(const double angle, const double rpm, const double secThreshold);
   double getRightPower();
   double getLeftPower();
   double getEncoderAverages();
@@ -72,5 +70,7 @@ private:
   const short int visionFOVWidth{316};
   const short int visionFOVHeight{212};
   double multiplier {1.0 / 1024 / 4};
+
+  double driftP {2};
 };
 } // namespace atum8

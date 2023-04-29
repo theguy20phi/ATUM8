@@ -126,7 +126,7 @@ void disabled()
 void autonomous()
 {
 	shooter->setUseVelocity(false);
-	shooter->setVelocityController(std::make_shared<atum8::PidFF>(0.4, 0, 0.1, 3.809));
+	shooter->setVelocityController(std::make_shared<atum8::PidFF>(0.0001, 0, 0.00001, 3.809));
 	shooter->setSlewRate(std::make_shared<atum8::SlewRate>(300));
 	shooter->setWaitUntilReady(true);
 	/*
@@ -250,7 +250,7 @@ void match()
 {
 	const atum8::Position start{-3_tile + 9_in, 0.5_tile, 90_deg};
 	odometry->setPosition(atum8::accountForSide(start, autonSelector->getColor(), true));
-	shooter->singleShotPrepare(2640_rpm);
+	shooter->singleShotPrepare(2650_rpm);
 	drive->moveTo({-2.5_tile, 0.5_tile}, 0.5_s);
 	shooter->raiseIntake();
 	drive->moveTo({-1.5_tile, 1.5_tile}, 5_s, false, 80, 127, diskOffset);
@@ -259,8 +259,8 @@ void match()
 	drive->pointAt(goal, 3.5_s);
 	shooter->singleShot(shooter->getDisks(), 2.125_s);
 	atum8::waitFor(doneShooting);
-	pros::delay(100);
-	shooter->singleShotPrepare(2635_rpm);
+	shooter->singleShotPrepare(2640_rpm);
+	pros::delay(200);
 	shooter->raiseIntake();
 	drive->moveTo({-1.5_tile, 0.5_tile}, 4_s, false, 85, 127, diskOffset);
 	getThreeStack();
@@ -269,7 +269,7 @@ void match()
 	shooter->singleShot(shooter->getDisks(), 2.125_s);
 	atum8::waitFor(doneShooting);
 	pros::delay(200);
-	shooter->singleShotPrepare(2840_rpm);
+	shooter->singleShotPrepare(2820_rpm);
 	shooter->runIntake();
 	drive->moveTo({-2.375_tile, -0.375_tile}, 6_s, false, 55);
 	drive->pointAt(goal, 3.5_s);
