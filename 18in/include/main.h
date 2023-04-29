@@ -40,10 +40,10 @@ void skills();
 void match();
 void special();
 void turnRoller();
-void getThreeStack();
+void getThreeStack(int n = 3);
 
-static constexpr atum8::Position goal{2_tile + 6.5_in, 2_tile + 6.5_in};
-static constexpr okapi::QLength diskOffset{8.75_in};
+static constexpr atum8::Position goal{2_tile + 4.5_in, 2_tile + 4.5_in};
+static constexpr okapi::QLength diskOffset{8.8_in};
 
 /**
  * Prototypes for the competition control tasks are redefined here to ensure
