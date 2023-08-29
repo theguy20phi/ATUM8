@@ -21,6 +21,7 @@ namespace atum8 {
     void automaticContolls();
     void manualControlls();
     void shoot();
+    void downUntilPrimed();
     private:
     bool isManualMode { false };
 };

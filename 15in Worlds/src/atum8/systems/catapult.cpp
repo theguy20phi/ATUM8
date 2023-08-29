@@ -49,4 +49,13 @@ namespace atum8 {
         catapultMotors.move_voltage(12000);
         pros::delay(200);
     }
+
+
+    void Catapult::downUntilPrimed() {
+        while (!catapultStop.get_value()) {
+            catapultMotors.move_voltage(12000);
+        }
+    catapultMotors.set_brake_modes(pros::E_MOTOR_BRAKE_BRAKE);
+    catapultMotors.move_voltage(0);
+}
 }

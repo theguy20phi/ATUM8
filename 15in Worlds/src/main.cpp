@@ -55,7 +55,8 @@ void disabled() {}
 
 void competition_initialize() {}
 
-void autonomous() {
+void autonomous() { 
+
   if (atum8::program == 1)
     atum8::redAuton();
   else if (atum8::program == 2)
